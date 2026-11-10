@@ -15,7 +15,7 @@ npx esbuild web/api-src/score.mjs --bundle --platform=node --target=node20 --for
 npx esbuild web/api-src/agent.mjs --bundle --platform=node --target=node20 --format=esm \
   --outfile="$OUT/api/agent.mjs" \
   --banner:js="import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" --log-level=warning
-for fn in break activity; do
+for fn in break activity cycle; do
   npx esbuild web/api-src/$fn.mjs --bundle --platform=node --target=node20 --format=esm \
     --outfile="$OUT/api/$fn.mjs" \
     --banner:js="import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);" --log-level=warning
@@ -23,7 +23,8 @@ done
 cat > "$OUT/vercel.json" <<'JSON'
 {
   "rewrites": [{ "source": "/((?!assets/|api/).*)", "destination": "/index.html" }],
-  "functions": { "api/score.mjs": { "maxDuration": 30 }, "api/agent.mjs": { "maxDuration": 30 }, "api/break.mjs": { "maxDuration": 30 }, "api/activity.mjs": { "maxDuration": 30 } }
+  "functions": { "api/score.mjs": { "maxDuration": 30 }, "api/agent.mjs": { "maxDuration": 30 }, "api/break.mjs": { "maxDuration": 30 }, "api/activity.mjs": { "maxDuration": 30 }, "api/cycle.mjs": { "maxDuration": 60 } },
+  "crons": [{ "path": "/api/cycle", "schedule": "0 6 * * *" }]
 }
 JSON
 echo "Deploy folder ready: $OUT"

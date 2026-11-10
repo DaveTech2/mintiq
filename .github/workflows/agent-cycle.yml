@@ -1,0 +1,23 @@
+# Runs the Mintiq agent on its own every 15 minutes: it scores new submissions
+# and invests idle funds for every NFT, with no human click.
+# Setup: repo Settings → Secrets and variables → Actions → add
+#   MINTIQ_CRON_SECRET  (same value as CRON_SECRET in Vercel)
+name: Agent cycle
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Run one agent cycle
+        env:
+          SECRET: ${{ secrets.MINTIQ_CRON_SECRET }}
+          SITE: ${{ vars.MINTIQ_SITE || 'https://mintiq-pink.vercel.app' }}
+        run: |
+          if [ -z "$SECRET" ]; then echo "MINTIQ_CRON_SECRET not set; skipping"; exit 0; fi
+          code=$(curl -sS -o out.json -w "%{http_code}" -H "Authorization: Bearer $SECRET" "$SITE/api/cycle")
+          cat out.json; echo
+          test "$code" = "200"
