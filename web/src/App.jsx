@@ -116,7 +116,7 @@ function App() {
       <header className="nav">
         <div className="container nav-inner">
           <Link to="/" go={go} className="brand" aria-label="Mintiq home">
-            <Logo /> <span>Mintiq</span>
+            <Logo size={26} /> <span>Mintiq</span>
           </Link>
           <nav className={`nav-links ${menuOpen ? "open" : ""}`} aria-label="Main">
             <Link to="/" go={go} aria-current={route.page === "home" ? "page" : undefined}>Overview</Link>
@@ -148,6 +148,10 @@ function App() {
           <div className="footer-brand">
             <div className="brand small"><Logo size={22} /> Mintiq</div>
             <p>NFTs with a treasury, a mission and an agent. Rules enforced on NEAR.</p>
+            <a className="x-link" href="https://x.com/mintiq_" target="_blank" rel="noopener noreferrer" aria-label="Mintiq on X (@mintiq_)">
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              @mintiq_
+            </a>
           </div>
           <nav className="footer-col" aria-label="Product">
             <h4>Product</h4>
@@ -235,7 +239,7 @@ function Landing({ go, account, walletReady, tokens }) {
         <div className="hero-glow" aria-hidden="true" />
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div className="hero-badge-row"><Logo size={44} /><span className="eyebrow"><Sparkles size={14} aria-hidden="true" /> NEAR · NFTs that do something</span></div>
+            <div className="hero-badge-row"><Logo size={26} /><span className="eyebrow"><Sparkles size={14} aria-hidden="true" /> NEAR · NFTs that do something</span></div>
             <h1>An NFT with a treasury, a mission, and an agent that <em>gets work done</em>.</h1>
             <p className="lead">
               Mint a Mintiq, fund it, and set the rules. Its agent posts jobs, scores the work, and invests idle funds.
@@ -753,7 +757,7 @@ function JobsBoard({ nft, account, isOwner, busy, act, send }) {
 function NotFound({ go }) {
   return (
     <section className="container page notfound">
-      <div className="nf-mark"><Logo size={120} /></div>
+      <div className="nf-mark"><Logo size={96} /></div>
       <p className="eyebrow">404</p>
       <h1>This page isn't on-chain.</h1>
       <p className="lead">The link may be broken, or the page was moved.</p>

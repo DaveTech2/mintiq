@@ -4,6 +4,7 @@
 
 - **Live (free, NEAR testnet):** https://mintiq-pink.vercel.app
 - **Contract:** [`mintiq7f109e53.testnet`](https://testnet.nearblocks.io/address/mintiq7f109e53.testnet) · demo yield pool [`yld.mintiq7f109e53.testnet`](https://testnet.nearblocks.io/address/yld.mintiq7f109e53.testnet) · hosted agent [`miqagt7f109e53.testnet`](https://testnet.nearblocks.io/address/miqagt7f109e53.testnet)
+- **X:** [@mintiq_](https://x.com/mintiq_)
 - **Track:** NEAR hackathon, "NFTs That Do Something" · demo script: [`docs/PITCH.md`](docs/PITCH.md)
 
 > Everything runs on **NEAR testnet with test NEAR**, which has no cash value. Amounts are shown in test NEAR, not dollars. Testnet USDC (NEP-141) was considered, but the contract's treasury, payouts and storage all settle in native NEAR, and switching would add `ft_transfer_call` plumbing without changing what the demo proves.

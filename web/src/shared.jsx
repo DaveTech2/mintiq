@@ -42,8 +42,8 @@ export function NftArt({ id = "1", name = "", small }) {
         <g transform={`translate(100 60) rotate(${rot})`} opacity="0.35">
           <rect x="-70" y="-3" width="140" height="6" rx="3" fill="#F5F3EF" />
         </g>
-        <rect x="68" y="28" width="64" height="64" rx="16" fill="#F5F3EF" />
-        <image href="/mintiq-mark.png" x="74" y="34" width="52" height="52" />
+        <rect x="54" y="34" width="92" height="52" rx="14" fill="#F5F3EF" />
+        <image href="/mintiq-logo.png" x="58" y="38" width="84" height="44" preserveAspectRatio="xMidYMid meet" />
       </svg>
     </div>
   );

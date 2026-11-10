@@ -1,12 +1,15 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import { CheckCircle2, XCircle, ExternalLink, X, Info } from "lucide-react";
 
-/** Brand mark: the user's Mintiq logo (green ribbon M). Falls back to a simple SVG M. */
+/** Brand mark: the official Mintiq logo (green ribbon M + orbit swoosh, transparent PNG).
+ *  `size` is the height; the logo is ~1.93× wider than tall. Falls back to a simple SVG M. */
+export const LOGO_RATIO = 512 / 266;
 export function Logo({ size = 28 }) {
   const [ok, setOk] = useState(true);
+  const w = Math.round(size * LOGO_RATIO);
   return (
-    <span className="logo-anim" style={{ width: size, height: size }} aria-hidden="true">
-      {ok ? <img src="/mintiq-mark.png" width={size} height={size} alt="" className="logo-mark" onError={() => setOk(false)} />
+    <span className="logo-anim" style={{ width: w, height: size }} aria-hidden="true">
+      {ok ? <img src="/mintiq-logo.png" width={w} height={size} alt="" className="logo-mark" onError={() => setOk(false)} />
         : <svg width={size} height={size} viewBox="0 0 32 32" className="logo-mark">
             <path d="M6 25V8l10 9 10-9v17" fill="none" stroke="#94C447" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
           </svg>}

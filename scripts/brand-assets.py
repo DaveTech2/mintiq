@@ -18,26 +18,36 @@ GREEN = (0x94, 0xC4, 0x47)
 INK = (0x0B, 0x0B, 0x0B)
 os.makedirs(PUB, exist_ok=True)
 
-def remove_cream(im, tol=28):
-    """Make near-cream pixels transparent with a soft edge."""
-    im = im.convert("RGBA")
-    px = im.load()
-    w, h = im.size
-    for y in range(h):
-        for x in range(w):
-            r, g, b, a = px[x, y]
-            d = max(abs(r - CREAM[0]), abs(g - CREAM[1]), abs(b - CREAM[2]))
-            if d <= tol:
-                px[x, y] = (r, g, b, 0)
-            elif d <= tol * 2:
-                px[x, y] = (r, g, b, int(255 * (d - tol) / tol))
-    return im
+def remove_cream(im, lo=16, hi=58):
+    """Cut the logo out of its cream background by colour saturation.
 
-def trim(im, pad=0.04):
+    The background is a bright, near-neutral cream (saturation < ~12); the logo is
+    saturated green. Alpha ramps from 0 to 1 between `lo` and `hi`, and edge colours
+    are un-blended from the local cream so there is no light halo on dark themes.
+    """
+    import numpy as np
+    a = np.asarray(im.convert("RGB")).astype(np.float32)
+    sat = a.max(axis=2) - a.min(axis=2)
+    alpha = np.clip((sat - lo) / (hi - lo), 0, 1)
+    # cream estimate from the border
+    border = np.concatenate([a[:8].reshape(-1, 3), a[-8:].reshape(-1, 3), a[:, :8].reshape(-1, 3), a[:, -8:].reshape(-1, 3)])
+    bg = np.median(border, axis=0)
+    safe = np.maximum(alpha, 1e-3)[..., None]
+    rgb = np.clip((a - (1 - alpha[..., None]) * bg) / safe, 0, 255)
+    rgb = np.where(alpha[..., None] > 0.98, a, rgb)
+    out = np.dstack([rgb, alpha * 255]).astype(np.uint8)
+    return Image.fromarray(out, "RGBA")
+
+def trim(im, pad=0.04, square=True):
     bbox = im.getchannel("A").point(lambda v: 255 if v > 16 else 0).getbbox()
     if bbox:
         im = im.crop(bbox)
     w, h = im.size
+    if not square:
+        p = int(max(w, h) * pad / 2)
+        out = Image.new("RGBA", (w + 2 * p, h + 2 * p), (0, 0, 0, 0))
+        out.paste(im, (p, p), im)
+        return out
     s = int(max(w, h) * (1 + pad * 2))
     out = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     out.paste(im, ((s - w) // 2, (s - h) // 2), im)
@@ -74,11 +84,18 @@ if not src:
 if src:
     if not os.path.basename(src).startswith("mintiq-logo-original"):
         ext = os.path.splitext(src)[1].lower() or ".png"
-        Image.open(src).save(os.path.join(PUB, "mintiq-logo-original" + ext))
-    mark = trim(remove_cream(Image.open(src)))
-    print("logo source:", os.path.basename(src))
+        im0 = Image.open(src).convert("RGB")
+        im0.thumbnail((1024, 1024), Image.LANCZOS)
+        im0.save(os.path.join(PUB, "mintiq-logo-original" + ext), quality=88)
+    cut = remove_cream(Image.open(src))
+    mark = trim(cut)
+    wide = trim(cut, pad=0.02, square=False)
+    wide.thumbnail((1024, 1024), Image.LANCZOS)
+    wide.save(os.path.join(PUB, "mintiq-logo.png"), optimize=True)
+    print("logo source:", os.path.basename(src), "wide", wide.size)
 else:
     mark = trim(interim_mark())
+    mark.save(os.path.join(PUB, "mintiq-logo.png"))
     print("logo source: interim drawn mark (no logo file found)")
 
 mark512 = mark.resize((512, 512), Image.LANCZOS)
