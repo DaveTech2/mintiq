@@ -172,7 +172,7 @@ function App() {
           </nav>
           <div className="footer-col">
             <h4>Testnet</h4>
-            <p>Free to try. Test NEAR has no cash value; the 5% yield is a labelled demo.</p>
+            <p>Rules live in the treasury contract on NEAR testnet. Free to try, test NEAR has no cash value and the 5% demo yield is simulated.</p>
             <p>Scoring: NEAR AI Cloud, with a built-in scorer as fallback.</p>
           </div>
         </div>
