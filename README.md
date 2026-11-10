@@ -5,9 +5,30 @@ An NFT that holds its own money, hires people, and invests idle funds — within
 > In one line: an NFT that earns, invests, hires, and pays on its own, within limits its owner sets.
 
 **Track:** NEAR hackathon, “NFTs That Do Something.”  
-**Demo rate:** **$2.00 per NEAR**, fixed and labelled in the UI. Not a live price. A $100 treasury is 50 NEAR; a $5 job is 2.5 NEAR; a $20 reserve is 10 NEAR.
+**Cost to try:** free. The site shows test NEAR only and has no USD rate. Minting charges just the storage the token uses (about 0.004 test NEAR), and the 5% yield is a labelled demo that costs you nothing. (The local scripted demo still uses a fixed $2/NEAR label for its $100 treasury story.)
 
-This repository was built and tested locally. It has **not** been pushed to GitHub from this worktree, and it does **not** spend real money.
+**Live, free on NEAR testnet:** https://mintiq-pink.vercel.app. There is no mint fee and no real money; you need only [free test NEAR](https://docs.near.org/getting-started/faucet).
+
+![Mintiq landing](docs/screens/home-desktop.png)
+
+## Try it in two minutes
+
+1. Get a free testnet wallet, for example [MyNearWallet testnet](https://testnet.mynearwallet.com), and free test NEAR from the [NEAR faucet](https://docs.near.org/getting-started/faucet).
+2. Open https://mintiq-pink.vercel.app and click **Connect wallet**. Pick MyNearWallet, Meteor, HERE, or Intear.
+3. Click **Mint your Mintiq**. Give it a name and a mission. The treasury defaults to 0.1 test NEAR, and 0 is fine; you can top up later with **Add funds**. Then set a max spend per task, a reserve floor (default 0), and the reinvest/owner split. Templates only prefill the form.
+4. On the **Dashboard**, pick your NFT ("Only mine" filters the list). As the owner you can:
+   - post a job;
+   - click **Ask agent to score**, which runs the built-in scorer;
+   - **Approve & pay** a passing submission;
+   - **Invest idle** funds above the reserve into the labelled demo pool;
+   - accrue and harvest the demo yield.
+
+   Anyone with a wallet can submit work to an open job.
+5. Every action shows a toast with a NearBlocks link. Errors are plain English, for example "Over the per-task limit" for `ERR_OVERSPEND`.
+
+To look around without a wallet, use **View demo NFT**, which opens token #1, Meme Studio.
+
+Screenshots (brand theme: cream #F5F3EF, green #94C447, black; desktop and mobile): [`docs/screens/`](docs/screens/). Testnet IDs and every tx hash: [`docs/TESTNET.md`](docs/TESTNET.md).
 
 ---
 
@@ -39,8 +60,10 @@ Other NEAR agent notes (Shade Agents deprecated as standalone tooling after 19 A
 
 The agent cannot pay contributors directly and cannot break the mint rules.
 
-- Only the **agent account** can `post_job`, `record_evaluation`, `invest_idle`, `harvest`, and `demo_accrue`.
-- Only the **owner** can `approve_and_pay` (and rotate the agent with `set_agent`).
+- Anyone can `mint` for free (no fee; only the measured storage cost is kept, the rest of the deposit is the treasury, 0 allowed; caller = owner). Anyone can `fund` a treasury.
+- Only the token's **agent** can `record_evaluation`, so owners cannot score their own jobs.
+- The token's **agent or owner** can `post_job`, `invest_idle`, `harvest`, and `demo_accrue` on that token, with every cap below still enforced.
+- Only the token's **owner** can `approve_and_pay` (and rotate the agent with `set_agent`). Owning one token gives no power over another.
 - `post_job` / `approve_and_pay` reject a budget above `max_per_task` (`ERR_OVERSPEND`).
 - Any spend or investment that would leave liquid treasury below `min_reserve` is rejected (`ERR_RESERVE`).
 - Investments are allowed only to `approved_destinations` (`ERR_UNAPPROVED_DESTINATION`). Earnings credit is also restricted to those accounts.
@@ -60,7 +83,13 @@ The approved investment destination in this repo is a **demo yield pool** (label
 contracts/mintiq/          Rust NFT + treasury + jobs (near-sdk 5.30)
 contracts/yield-pool/      Labelled demo yield destination
 app/src/                   Agent, evaluator, API server, Agent Market simulation
-web/                       Dashboard (Vite + React)
+app/src/agent-cycle.js     One agent cycle (score pending, optionally invest idle), shared by CLI/API
+web/                       Product site + dapp (Vite + React, NEAR Wallet Selector)
+web/api-src/               Vercel functions: /api/score (public) and /api/agent (IronClaw relay)
+ironclaw/                  IronClaw extension packaging the Mintiq agent (see ironclaw/README.md)
+scripts/build-deploy.sh    Build the site + bundle functions into web/.deploy
+scripts/upgrade-testnet.mjs  In-place contract upgrade with a state check
+scripts/e2e-call.sh        near-cli wrapper that records E2E txs
 scripts/demo.mjs           Scripted end-to-end demo
 scripts/build-wasm.sh      Release wasm → res/
 docs/                      Agent Market and NEAR agent research
@@ -96,13 +125,20 @@ The script mints a $100 treasury, tries (and shows NEAR rejecting) a transfer an
 
 Keys are written to `.mintiq/` with mode `0600` and are gitignored. Logs print account IDs only.
 
-The default evaluator is the **built-in rule-based scorer (no LLM)**. It parses the job brief for a required count and topic (for example, 5 meme ideas), requires that many distinct items with caption/format/punchline structure, and penalizes negations or meta-mentions of the topic, off-topic content, duplicates, and too-short items. Pass is a score of 70 or more. Run `npm run test:scorer` for the unit tests.
+**Evaluator (auto).** When `NEARAI_API_KEY` is set, Mintiq first asks NEAR AI Cloud (`https://cloud-api.near.ai/v1`, model `z-ai/glm-5.3-flash`, overridable with `NEAR_AI_MODEL`). On any error (HTTP 402 no credit, 401, timeout, or bad JSON) it falls back to the **built-in rule-based scorer (no LLM)**. The scorer that was used is stored on-chain in each submission's `evaluator` field and shown on the dashboard as "Scored by …", for example `Built-in rule-based scorer (no LLM); NEAR AI fallback (HTTP 402)`. After a 401 or 402 the process stops calling Cloud. `NEARAI_JUDGE=0` forces the built-in scorer. The key is never logged or sent to the browser; on Vercel it is a sensitive env var. **Live check, 10 Nov 2026:** the current key still returns HTTP 402 `no_limit_configured`, so every live score so far comes from the built-in fallback. `npm run test:scorer` covers the Cloud success path, the 402 fallback, the timeout fallback, `NEARAI_JUDGE=0`, and a check that the key never leaks into results.
 
-Live NEAR AI Cloud judging is wired but **not exercised in the demo**: the Cloud account has no credit, and the user chose not to buy any. A key in `NEARAI_API_KEY` is not enough to turn it on. Set `NEARAI_JUDGE=1` (agent process only, never in the dashboard bundle, never commit the key) only when the account is funded. The gateway is `https://cloud-api.near.ai/v1`. An unfunded key returns HTTP 402 (`no_limit_configured`); with the flag left off, the demo never calls Cloud and those errors do not hit the logs. If the flag is on and Cloud fails, the built-in scorer is used, one warning is printed, and Cloud is not retried in that process.
+The built-in scorer parses the job brief for a required count and topic, requires that many distinct on-topic items, and penalizes off-topic content, duplicates, and too-short items. A score of 70 or more passes.
 
-After a testnet deploy, `web/src/deployed.json` holds public contract IDs and tx hashes only (no keys). `npm run build:web` then produces a static dashboard that reads live state from testnet RPC. Public visitors can inspect the demo NFT; they cannot sign writes from the site. The production dashboard is at https://mintiq-pink.vercel.app. Details: [`docs/TESTNET.md`](docs/TESTNET.md).
+After a testnet deploy, `web/src/deployed.json` holds public contract IDs and tx hashes only (no keys). `npm run build:web` then produces a static dashboard that reads live state from testnet RPC. Visitors sign with their own wallet. The production site is at https://mintiq-pink.vercel.app. Details: [`docs/TESTNET.md`](docs/TESTNET.md).
 
-To deploy the frontend statically (for example to Vercel), run `npm run build:web` and publish `web/dist`. The testnet build does not need a `/api` server. **Do not deploy unless asked.**
+### Deploying the site
+
+`bash scripts/build-deploy.sh` builds `web/dist` into `web/.deploy` and bundles two serverless functions:
+
+- `POST /api/score {token_id}` is public. It scores up to 3 unscored submissions on that token with the built-in scorer, then signs `record_evaluation` with the agent's **function-call key**. That key cannot transfer NEAR and can only call agent methods. It lives in the Vercel env var `MINTIQ_AGENT_KEY`.
+- `POST /api/agent` is the IronClaw signer relay. It needs `Authorization: Bearer $MINTIQ_RELAY_TOKEN` and accepts the actions `score`, `invest`, `accrue` (capped at 5%), and `harvest`, only on tokens whose agent is the Mintiq agent.
+
+Then run `cd web/.deploy && npx vercel deploy --prod`. `web/.deploy` and `.vercel` are gitignored.
 
 ---
 
@@ -113,8 +149,10 @@ To deploy the frontend statically (for example to Vercel), run `npm run build:we
 | Mintiq + yield-pool contracts | Compiled to wasm; unit tests run on the host |
 | End-to-end loop | Local **NEAR sandbox** via `near-workspaces` |
 | NEAR testnet deploy | Done. Contracts and the scripted demo flow are on testnet. Public IDs, tx hashes, and explorer links: [`docs/TESTNET.md`](docs/TESTNET.md). |
-| Agent signer | Local function-call access key, not a Shade TEE |
-| Job evaluator | **Built-in rule-based scorer (no LLM)** is the demo default. Live NEAR AI Cloud judging is wired behind `NEARAI_JUDGE=1` plus a key, but is **not exercised**: the account has no credit (HTTP 402 `no_limit_configured` on earlier probes) and the user chose not to buy credits. We do not claim a live NEAR AI score we did not get. |
+| Wallet connect + public mint | **Live on testnet** (NEAR Wallet Selector). E2E with fresh faucet accounts in [`docs/TESTNET.md`](docs/TESTNET.md) |
+| Agent signer | Function-call access key (local CLI, or Vercel env for `/api/score` and the IronClaw relay), not a Shade TEE |
+| IronClaw | Extension in [`ironclaw/`](ironclaw/README.md), run on a locally built IronClaw v1.4.1 with a local open-weights model. Hosted IronClaw on NEAR AI Cloud is documented only (needs sign-in/credits) |
+| Job evaluator | NEAR AI Cloud (`z-ai/glm-5.3-flash`) is tried first when a key is set, with automatic fallback to the built-in scorer. Live: the key returns HTTP 402 (no credits), so every recorded score is the built-in fallback, and each one is labelled as such on-chain. |
 | Agent Market job | **Simulation** of the documented lifecycle, clearly labelled |
 | Demo yield | Simulated 10% APY pool, labelled; not real staking |
 

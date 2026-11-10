@@ -1,0 +1,2 @@
+{ "type": "object", "additionalProperties": false, "required": ["token_id"],
+  "properties": { "token_id": { "type": "string", "pattern": "^[0-9]{1,9}$" } } }

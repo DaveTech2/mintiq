@@ -1,13 +1,12 @@
 /**
  * Pluggable job evaluator.
  *
- * Default: the built-in rule-based scorer (no LLM, no network).
- * Optional live NEAR AI Cloud judging is behind NEARAI_JUDGE=1 (or
- * MINTIQ_NEARAI_JUDGE=1) AND a key in NEARAI_API_KEY / NEAR_AI_API_KEY.
- * A key alone does not turn it on, so an unfunded key cannot 402-spam
- * the demo. If live judging is enabled and Cloud returns an error (including
- * 402), we fall back to the built-in scorer, warn once, and do not retry
- * in this process. The key is never logged, printed, written to disk, or
+ * Auto mode: if NEARAI_API_KEY (or NEAR_AI_API_KEY) is set, NEAR AI Cloud
+ * (model z-ai/glm-5.3-flash by default, NEAR_AI_MODEL overrides) is tried
+ * first. On any error (HTTP 402 no credit, 401, timeout, bad JSON) the
+ * built-in rule-based scorer is used and the fallback is recorded in the
+ * evaluator label stored on-chain. NEARAI_JUDGE=0 forces the built-in scorer.
+ * After a 401/402 we stop calling Cloud for the rest of this process. The key is never logged, printed, written to disk, or
  * sent to the dashboard. The contract does not trust this score; the owner
  * still has to approve payment.
  */
@@ -15,7 +14,8 @@
 import { ruleBasedEvaluate, SCORER_LABEL } from "./scorer.js";
 
 const NEAR_AI_BASE = "https://cloud-api.near.ai/v1";
-const LLM_TIMEOUT_MS = 30_000;
+const LLM_TIMEOUT_MS = Number(process.env.NEAR_AI_TIMEOUT_MS || 12_000);
+export const DEFAULT_NEAR_AI_MODEL = "z-ai/glm-5.3-flash";
 const DISCOVER_TIMEOUT_MS = 15_000;
 const MAX_TOKENS = 300;
 
@@ -38,15 +38,31 @@ export function nearAiBaseUrl() {
   return (process.env.NEAR_AI_BASE_URL || NEAR_AI_BASE).replace(/\/$/, "");
 }
 
-function flagOn(value) {
-  return ["1", "true", "yes", "on"].includes(String(value || "").trim().toLowerCase());
+function flagOff(value) {
+  return ["0", "false", "no", "off"].includes(String(value ?? "").trim().toLowerCase());
 }
 
-/** Live Cloud judging is opt-in. Default off so an unfunded key is never called. */
+/** Auto: on when a key is set, unless NEARAI_JUDGE=0 (or MINTIQ_NEARAI_JUDGE=0). */
 export function nearAiJudgeEnabled() {
   if (cloudDisabledAfterError) return false;
-  const on = flagOn(process.env.NEARAI_JUDGE) || flagOn(process.env.MINTIQ_NEARAI_JUDGE);
-  return on && Boolean(nearAiApiKey());
+  if (flagOff(process.env.NEARAI_JUDGE) || flagOff(process.env.MINTIQ_NEARAI_JUDGE)) return false;
+  return Boolean(nearAiApiKey());
+}
+
+/** Test hook: forget a previous 401/402 so the next call tries Cloud again. */
+export function resetNearAiState() {
+  cloudDisabledAfterError = false;
+  cloudWarningLogged = false;
+  cachedModelId = null;
+  discoverPromise = null;
+}
+
+function shortReason(err) {
+  const status = err?.status;
+  if (status) return `HTTP ${status}`;
+  const m = String(err?.message || err || "error");
+  if (/timed out/i.test(m)) return "timeout";
+  return m.slice(0, 40);
 }
 
 function redact(value) {
@@ -76,17 +92,21 @@ function describeHttpError(status, body) {
 }
 
 function warnCloudOnce(err) {
+  if (err?.status === 401 || err?.status === 402) cloudDisabledAfterError = true;
   if (cloudWarningLogged) return;
   cloudWarningLogged = true;
-  cloudDisabledAfterError = true;
   const msg = redact(err?.message || err);
-  console.warn(`NEAR AI Cloud judging disabled for this process after an error: ${msg}. Using ${SCORER_LABEL}.`);
+  console.warn(`NEAR AI Cloud judging failed: ${msg}. Using ${SCORER_LABEL}${cloudDisabledAfterError ? " for the rest of this process" : " for this submission"}.`);
 }
 
-function withOptionalFallback(result, fallbackReason) {
+function withOptionalFallback(result, fallbackReason, short) {
   if (!fallbackReason) return result;
+  const label = `${SCORER_LABEL}; NEAR AI fallback (${short || "error"})`.slice(0, 120);
   return {
     ...result,
+    evaluator: label,
+    label,
+    source: "rule-based-fallback",
     fallback: true,
     fallback_reason: redact(fallbackReason),
     reasoning: `${result.reasoning} (Fell back from NEAR AI Cloud: ${redact(fallbackReason)}.)`,
@@ -138,11 +158,11 @@ function passedFrom(parsed, score) {
   return score >= 70;
 }
 
-async function fetchJson(url, { method = "GET", body, timeoutMs, apiKey }) {
+async function fetchJson(url, { method = "GET", body, timeoutMs, apiKey, fetchImpl = fetch }) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const res = await fetch(url, {
+    const res = await fetchImpl(url, {
       method,
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -167,7 +187,9 @@ async function fetchJson(url, { method = "GET", body, timeoutMs, apiKey }) {
     if (err?.name === "AbortError") {
       throw new Error(`NEAR AI Cloud request timed out after ${timeoutMs}ms`);
     }
-    throw new Error(redact(err?.message || err));
+    const e = new Error(redact(err?.message || err));
+    if (err?.status) e.status = err.status;
+    throw e;
   } finally {
     clearTimeout(timer);
   }
@@ -212,7 +234,7 @@ export async function discoverNearAiModel({ force = false } = {}) {
   }
 }
 
-async function llmEvaluate(job, content, { apiKey, baseUrl, model }) {
+async function llmEvaluate(job, content, { apiKey, baseUrl, model, fetchImpl, timeoutMs = LLM_TIMEOUT_MS }) {
   const payload = {
     model,
     temperature: 0.2,
@@ -233,8 +255,9 @@ async function llmEvaluate(job, content, { apiKey, baseUrl, model }) {
   const data = await fetchJson(`${baseUrl}/chat/completions`, {
     method: "POST",
     body: payload,
-    timeoutMs: LLM_TIMEOUT_MS,
+    timeoutMs,
     apiKey,
+    fetchImpl,
   });
   const raw = data.choices?.[0]?.message?.content || "";
   const parsed = parseEvaluationJson(raw);
@@ -259,8 +282,8 @@ export function evaluatorStatus() {
   if (nearAiJudgeEnabled()) {
     return {
       source: "near-ai",
-      evaluator: cachedModelId ? `NEAR AI Cloud (${cachedModelId})` : "NEAR AI Cloud (model chosen from the live catalog)",
-      model: cachedModelId,
+      evaluator: `NEAR AI Cloud (${process.env.NEAR_AI_MODEL || DEFAULT_NEAR_AI_MODEL}), built-in scorer fallback`,
+      model: process.env.NEAR_AI_MODEL || DEFAULT_NEAR_AI_MODEL,
       configured: true,
       nearAiJudge: true,
     };
@@ -274,18 +297,20 @@ export function evaluatorStatus() {
   };
 }
 
-export async function evaluateSubmission(job, content) {
+export async function evaluateSubmission(job, content, { fetchImpl = fetch, timeoutMs } = {}) {
   if (nearAiJudgeEnabled()) {
     try {
-      const model = await discoverNearAiModel();
+      const model = process.env.NEAR_AI_MODEL || DEFAULT_NEAR_AI_MODEL;
       return await llmEvaluate(job, content, {
         apiKey: nearAiApiKey(),
         baseUrl: nearAiBaseUrl(),
         model,
+        fetchImpl,
+        timeoutMs,
       });
     } catch (err) {
       warnCloudOnce(err);
-      return withOptionalFallback(ruleBasedEvaluate(job, content), err?.message || err);
+      return withOptionalFallback(ruleBasedEvaluate(job, content), err?.message || err, shortReason(err));
     }
   }
   return ruleBasedEvaluate(job, content);

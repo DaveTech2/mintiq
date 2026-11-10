@@ -1,0 +1,78 @@
+schema_version = "reborn.extension_manifest.v3"
+id = "mintiq"
+name = "Mintiq agent"
+version = "0.1.0"
+description = "Mintiq NFT treasury agent on NEAR testnet: find unscored work, score it with the built-in scorer, invest idle funds, harvest demo yield."
+trust = "third_party"
+
+[runtime]
+kind = "wasm"
+module = "wasm/mintiq_tool.wasm"
+
+# Read-only. Only egress: the NEAR testnet RPC. No credentials.
+[[tools]]
+origin_gate_matrix = { loop_run = "gated_unless_granted", product = "forbidden", automation = "gated_unless_granted" }
+id = "mintiq.list_pending"
+description = "List Mintiq NFTs run by this agent, their unscored submissions, and idle funds above the reserve (NEAR testnet, read-only)."
+effects = ["network"]
+default_permission = "allow"
+visibility = "model"
+input_schema_ref = "schemas/mintiq/list_pending.input.v1.json"
+prompt_doc_ref = "prompts/mintiq/list_pending.md"
+network_targets = [{ scheme = "https", host_pattern = "test.rpc.fastnear.com" }]
+
+# Writes go through the Mintiq relay, which signs with the agent's
+# function-call key (receiver = mintiq7f109e53.testnet only). The bearer token
+# is injected by IronClaw host egress; the WASM never sees it.
+[[tools]]
+origin_gate_matrix = { loop_run = "gated_unless_granted", product = "forbidden", automation = "gated_unless_granted" }
+id = "mintiq.score_submission"
+description = "Score one unscored Mintiq submission with the built-in rule-based scorer and record the score on-chain. Cannot pay anyone."
+effects = ["network", "use_secret", "external_write"]
+default_permission = "ask"
+visibility = "model"
+input_schema_ref = "schemas/mintiq/score_submission.input.v1.json"
+prompt_doc_ref = "prompts/mintiq/score_submission.md"
+
+[[tools.credentials]]
+handle = "mintiq_relay_token"
+vendor = "mintiq"
+audience = { scheme = "https", host = "mintiq-pink.vercel.app" }
+injection = { type = "header", name = "authorization", prefix = "Bearer " }
+
+[[tools]]
+origin_gate_matrix = { loop_run = "gated_unless_granted", product = "forbidden", automation = "gated_unless_granted" }
+id = "mintiq.invest_idle"
+description = "Invest a Mintiq NFT's idle funds above its reserve into its approved destination (demo yield pool on testnet)."
+effects = ["network", "use_secret", "external_write", "financial"]
+default_permission = "ask"
+visibility = "model"
+input_schema_ref = "schemas/mintiq/token.input.v1.json"
+prompt_doc_ref = "prompts/mintiq/invest_idle.md"
+
+[[tools.credentials]]
+handle = "mintiq_relay_token"
+vendor = "mintiq"
+audience = { scheme = "https", host = "mintiq-pink.vercel.app" }
+injection = { type = "header", name = "authorization", prefix = "Bearer " }
+
+[[tools]]
+origin_gate_matrix = { loop_run = "gated_unless_granted", product = "forbidden", automation = "gated_unless_granted" }
+id = "mintiq.harvest"
+description = "Harvest a Mintiq NFT's earnings from its approved destination; optionally accrue labelled demo yield first (testnet only)."
+effects = ["network", "use_secret", "external_write", "financial"]
+default_permission = "ask"
+visibility = "model"
+input_schema_ref = "schemas/mintiq/harvest.input.v1.json"
+prompt_doc_ref = "prompts/mintiq/harvest.md"
+
+[[tools.credentials]]
+handle = "mintiq_relay_token"
+vendor = "mintiq"
+audience = { scheme = "https", host = "mintiq-pink.vercel.app" }
+injection = { type = "header", name = "authorization", prefix = "Bearer " }
+
+[auth.mintiq]
+method = "api_key"
+display_name = "Mintiq agent relay token"
+fields = [{ handle = "mintiq_relay_token", label = "Relay token", secret = true }]

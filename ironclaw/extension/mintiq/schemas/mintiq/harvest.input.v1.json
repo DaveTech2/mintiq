@@ -1,0 +1,2 @@
+{ "type": "object", "additionalProperties": false, "required": ["token_id"],
+  "properties": { "token_id": { "type": "string", "pattern": "^[0-9]{1,9}$" }, "accrue_demo_bps": { "type": "integer", "minimum": 1, "maximum": 500, "description": "Testnet demo only: accrue this many basis points of labelled demo yield before harvesting." } } }

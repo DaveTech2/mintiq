@@ -13,8 +13,9 @@ pub type TokenId = String;
 
 const TGAS_DEPOSIT: u64 = 20;
 const TGAS_CALLBACK: u64 = 15;
-/// Buffer held back from a mint deposit to cover contract storage.
-const STORAGE_BUFFER: u128 = 50_000_000_000_000_000_000_000; // 0.05 NEAR
+/// Minting is free apart from the NEAR storage the new token actually uses
+/// (measured at mint time, typically ~0.01 NEAR). Everything above that
+/// becomes the treasury, which may be zero and topped up later with `fund`.
 /// Public-mint limits so one visitor cannot bloat shared contract storage.
 const MAX_NAME_LEN: usize = 64;
 const MAX_MISSION_LEN: usize = 500;
@@ -196,8 +197,8 @@ impl Contract {
         }
     }
 
-    /// Mint a Mintiq NFT. The attached deposit minus a 0.05 NEAR storage buffer
-    /// becomes the NFT's liquid treasury.
+    /// Mint a Mintiq NFT. There is no mint fee: the attached deposit minus the
+    /// exact storage cost of the new token becomes its liquid treasury (0 is fine).
     #[payable]
     pub fn mint(
         &mut self,
@@ -228,9 +229,7 @@ impl Contract {
         require!(!approved_destinations.is_empty(), "ERR_NO_DESTINATIONS");
 
         let attached = env::attached_deposit().as_yoctonear();
-        require!(attached > STORAGE_BUFFER, "ERR_DEPOSIT_TOO_LOW");
-        let liquid = attached - STORAGE_BUFFER;
-        require!(liquid > yocto(min_reserve), "ERR_TREASURY_LE_RESERVE");
+        let storage_before = env::storage_usage();
 
         let token_id = self.next_id.to_string();
         self.next_id += 1;
@@ -249,7 +248,7 @@ impl Contract {
                 owner_share_bps,
                 approved_destinations,
             },
-            liquid: U128(liquid),
+            liquid: U128(0),
             invested: U128(0),
             track_record: TrackRecord {
                 jobs_completed: 0,
@@ -263,12 +262,28 @@ impl Contract {
             minted_at_ms: env::block_timestamp_ms(),
         };
         self.tokens.insert(token_id.clone(), record);
+        self.tokens.flush();
+        let used = env::storage_usage().saturating_sub(storage_before) as u128;
+        let storage_cost = used * env::storage_byte_cost().as_yoctonear();
+        require!(attached >= storage_cost, "ERR_DEPOSIT_TOO_LOW");
+        let liquid = attached - storage_cost;
+        require!(liquid >= yocto(min_reserve), "ERR_TREASURY_LE_RESERVE");
+        self.tokens.get_mut(&token_id).unwrap().liquid = U128(liquid);
 
         env::log_str(&format!(
             "EVENT_JSON:{{\"standard\":\"nep171\",\"version\":\"1.2.0\",\"event\":\"nft_mint\",\"data\":[{{\"owner_id\":\"{}\",\"token_ids\":[\"{}\"]}}]}}",
             owner_id, token_id
         ));
         token_id
+    }
+
+    /// Anyone can top up a token's treasury (free test NEAR on testnet).
+    #[payable]
+    pub fn fund(&mut self, token_id: TokenId) {
+        let amount = env::attached_deposit().as_yoctonear();
+        require!(amount > 0, "ERR_AMOUNT");
+        let token = self.token_mut(&token_id);
+        token.liquid = U128(yocto(token.liquid) + amount);
     }
 
     /// Owner-only. Rotate the agent account (upgrade path toward a TEE/Shade agent).
@@ -744,6 +759,21 @@ mod tests {
         near * 10u128.pow(24)
     }
 
+    /// Test helper: extra deposit that comfortably covers storage. Whatever
+    /// storage does not use is credited to the treasury.
+    const STORAGE_BUFFER: u128 = 50_000_000_000_000_000_000_000; // 0.05 NEAR
+
+    /// Liquid = expected + whatever part of STORAGE_BUFFER storage did not use.
+    fn assert_liquid(liquid: u128, expected: u128) {
+        assert!(
+            liquid > expected && liquid <= expected + STORAGE_BUFFER,
+            "liquid {} not in ({}, {}]",
+            liquid,
+            expected,
+            expected + STORAGE_BUFFER
+        );
+    }
+
     fn context(pred: AccountId, deposit: u128) -> VMContext {
         VMContextBuilder::new()
             .predecessor_account_id(pred)
@@ -774,7 +804,7 @@ mod tests {
         let t = c.get_nft(id);
         assert_eq!(t.owner_id, accounts(0));
         assert_eq!(t.agent_id, accounts(1));
-        assert_eq!(yocto(t.liquid), n(50));
+        assert_liquid(yocto(t.liquid), n(50));
         assert_eq!(yocto(t.rules.min_reserve), n(10));
         assert_eq!(yocto(t.rules.max_per_task), n(5) / 2);
         assert_eq!(t.track_record.jobs_completed, 0);
@@ -850,7 +880,7 @@ mod tests {
         assert_eq!(t.track_record.jobs_completed, 1);
         assert_eq!(t.track_record.contributors_hired, 1);
         assert_eq!(yocto(t.track_record.total_spent), n(5) / 2);
-        assert_eq!(yocto(t.liquid), n(50) - n(5) / 2);
+        assert_liquid(yocto(t.liquid), n(50) - n(5) / 2);
         assert!(t.hired.contains(&accounts(2)));
         assert!(matches!(t.jobs[0].status, JobStatus::Paid));
     }
@@ -930,7 +960,7 @@ mod tests {
         testing_env!(context(accounts(1), 0));
         let _ = c.invest_idle(id.clone(), accounts(5), U128(n(20)));
         let t = c.get_nft(id);
-        assert_eq!(yocto(t.liquid), n(30));
+        assert_liquid(yocto(t.liquid), n(30));
         assert_eq!(yocto(t.invested), n(20));
         assert_eq!(t.investments.len(), 1);
     }
@@ -944,7 +974,7 @@ mod tests {
         let _ = c.credit_earnings(id.clone());
         let t = c.get_nft(id);
         assert_eq!(yocto(t.track_record.total_earned), n(10));
-        assert_eq!(yocto(t.liquid), n(50) + n(7)); // 70% of 10
+        assert_liquid(yocto(t.liquid), n(50) + n(7)); // 70% of 10
     }
 
     #[test]
@@ -982,7 +1012,7 @@ mod tests {
         c.nft_transfer(accounts(4), id.clone(), Some("gift".into()));
         let t = c.get_nft(id.clone());
         assert_eq!(t.owner_id, accounts(4));
-        assert_eq!(yocto(t.liquid), n(50));
+        assert_liquid(yocto(t.liquid), n(50));
         assert_eq!(c.nft_supply_for_owner(accounts(4)).0, 1);
         assert_eq!(c.nft_supply_for_owner(accounts(0)).0, 0);
     }
@@ -1032,7 +1062,7 @@ mod tests {
 
     /// A visitor with a faucet account mints with a small 1.5 NEAR deposit.
     fn visitor_mint(c: &mut Contract, visitor: AccountId) -> TokenId {
-        testing_env!(context(visitor, tenth(15)));
+        testing_env!(context(visitor, tenth(15) + STORAGE_BUFFER));
         c.mint(
             "Visitor Studio".into(),
             "test the Mintiq loop".into(),
@@ -1053,7 +1083,7 @@ mod tests {
         assert_ne!(first, id);
         let t = c.get_nft(id.clone());
         assert_eq!(t.owner_id, accounts(3));
-        assert_eq!(yocto(t.liquid), tenth(15) - STORAGE_BUFFER);
+        assert_liquid(yocto(t.liquid), tenth(15));
         assert_eq!(c.nft_supply_for_owner(accounts(3)).0, 1);
         assert_eq!(c.nft_tokens_for_owner(accounts(3), None, None)[0].token_id, id);
         assert_eq!(c.nft_total_supply().0, 2);
@@ -1068,10 +1098,32 @@ mod tests {
     }
 
     #[test]
+    fn mint_is_free_apart_from_storage_and_fund_tops_up() {
+        let mut c = Contract::new();
+        // 0.01 NEAR covers storage for a small token; treasury may be ~0 with reserve 0.
+        testing_env!(context(accounts(3), n(1) / 100));
+        let id = c.mint("Free".into(), "try it".into(), accounts(1), U128(n(1) / 10), U128(0), 10_000, 0, vec![accounts(5)]);
+        let t = c.get_nft(id.clone());
+        assert!(yocto(t.liquid) < n(1) / 100);
+        testing_env!(context(accounts(4), n(1) / 10));
+        c.fund(id.clone());
+        let t2 = c.get_nft(id);
+        assert_eq!(yocto(t2.liquid), yocto(t.liquid) + n(1) / 10);
+    }
+
+    #[test]
+    #[should_panic(expected = "ERR_DEPOSIT_TOO_LOW")]
+    fn mint_rejects_deposit_below_storage_cost() {
+        let mut c = Contract::new();
+        testing_env!(context(accounts(3), 1_000));
+        c.mint("x".into(), "y".into(), accounts(1), U128(1), U128(0), 10_000, 0, vec![accounts(5)]);
+    }
+
+    #[test]
     #[should_panic(expected = "ERR_TOO_MANY_DESTINATIONS")]
     fn mint_caps_destination_list() {
         let mut c = Contract::new();
-        testing_env!(context(accounts(3), tenth(15)));
+        testing_env!(context(accounts(3), tenth(15) + STORAGE_BUFFER));
         let many: Vec<AccountId> = (0..6).map(|i| format!("d{i}.testnet").parse().unwrap()).collect();
         c.mint("x".into(), "y".into(), accounts(1), U128(1), U128(0), 10_000, 0, many);
     }
@@ -1096,11 +1148,11 @@ mod tests {
         let t = c.get_nft(id);
         assert_eq!(t.track_record.jobs_completed, 1);
         assert_eq!(yocto(t.invested), tenth(5));
-        assert_eq!(yocto(t.liquid), tenth(15) - STORAGE_BUFFER - tenth(1) - tenth(5));
+        assert_liquid(yocto(t.liquid), tenth(15) - tenth(1) - tenth(5));
         // demo token untouched
         let demo = c.get_nft("1".into());
         assert_eq!(demo.track_record.jobs_completed, 0);
-        assert_eq!(yocto(demo.liquid), n(50));
+        assert_liquid(yocto(demo.liquid), n(50));
     }
 
     #[test]
@@ -1118,8 +1170,8 @@ mod tests {
         let mut c = Contract::new();
         let id = visitor_mint(&mut c, accounts(3));
         testing_env!(context(accounts(3), 0));
-        // liquid 1.45, reserve 0.5 -> investing 1.0 leaves 0.45 < 0.5
-        let _ = c.invest_idle(id, accounts(5), U128(n(1)));
+        // liquid ~1.5, reserve 0.5 -> investing 1.1 leaves ~0.4 < 0.5
+        let _ = c.invest_idle(id, accounts(5), U128(tenth(11)));
     }
 
     #[test]

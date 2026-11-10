@@ -9,7 +9,7 @@
  * (record_evaluation, invest_idle, harvest, demo_accrue, post_job). The
  * contract still enforces every cap; this code cannot pay anyone.
  */
-import { ruleBasedEvaluate, SCORER_LABEL } from "./scorer.js";
+import { evaluateSubmission, evaluatorStatus } from "./evaluator.js";
 
 const GAS = 30_000_000_000_000n;
 const GAS_HEAVY = 80_000_000_000_000n;
@@ -49,7 +49,7 @@ export async function runCycle({ view, call, agentId, tokenIds = null, maxScores
     }
     for (const { job, sub } of pendingSubmissions(nft)) {
       if (scored >= maxScores) break;
-      const ev = ruleBasedEvaluate(job, sub.content);
+      const ev = await evaluateSubmission(job, sub.content);
       const args = {
         token_id,
         job_id: job.id,
@@ -57,11 +57,11 @@ export async function runCycle({ view, call, agentId, tokenIds = null, maxScores
         score: ev.score,
         reasoning: ev.reasoning.slice(0, 900),
         recommend_approve: ev.recommend_approve,
-        evaluator: SCORER_LABEL,
+        evaluator: ev.evaluator.slice(0, 120),
       };
       const r = await call("record_evaluation", args, GAS);
       scored += 1;
-      actions.push({ type: "record_evaluation", token_id, job_id: job.id, submission_id: sub.id, score: ev.score, pass: ev.recommend_approve, ...r });
+      actions.push({ type: "record_evaluation", token_id, job_id: job.id, submission_id: sub.id, score: ev.score, pass: ev.recommend_approve, evaluator: args.evaluator, ...r });
       log(`scored token ${token_id} job ${job.id} sub ${sub.id}: ${ev.score}`);
     }
     if (invest) {
@@ -73,5 +73,5 @@ export async function runCycle({ view, call, agentId, tokenIds = null, maxScores
       }
     }
   }
-  return { agentId, evaluator: SCORER_LABEL, actions };
+  return { agentId, evaluator: evaluatorStatus().evaluator, actions };
 }

@@ -22,8 +22,8 @@
   },
   "demoTokenId": "1",
   "usdPerNear": 2,
-  "rateLabel": "Fixed demo rate (not a live price): $2.00 per NEAR",
-  "evaluator": "Built-in rule-based scorer (no LLM)",
+  "rateLabel": "Free on testnet: test NEAR has no cash value",
+  "evaluator": "NEAR AI Cloud (z-ai/glm-5.3-flash) first, Built-in rule-based scorer (no LLM) fallback",
   "evaluations": {
     "good": {
       "score": 95,
@@ -309,5 +309,6 @@
     ]
   },
   "writtenAt": "2026-11-10T08:24:08.757Z",
-  "rpcNote": "Uses https://test.rpc.fastnear.com because rpc.testnet.near.org returned HTTP -429 / deprecated mid-demo."
+  "rpcNote": "Uses https://test.rpc.fastnear.com because rpc.testnet.near.org returned HTTP -429 / deprecated mid-demo.",
+  "faucet": "https://docs.near.org/getting-started/faucet"
 }

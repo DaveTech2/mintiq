@@ -8,7 +8,7 @@ const before = await view("get_nft", { token_id: "1" });
 const acct = await accountFromFile("testnet-mintiq.json");
 const wasm = fs.readFileSync(path.join(ROOT, "res/mintiq.wasm"));
 const r = await tryCall(acct, (a) => a.deployContract(wasm));
-record("testnet-v2.json", { label: "Upgrade Mintiq contract to v2 (public mint, owner-run treasury ops, size caps)", ...r, out: undefined });
+record("testnet-v2.json", { label: process.env.UPGRADE_LABEL || "Upgrade Mintiq contract to v2 (public mint, owner-run treasury ops, size caps)", ...r, out: undefined });
 const after = await view("get_nft", { token_id: "1" });
 const same = JSON.stringify(before) === JSON.stringify(after);
 console.log(`Demo token #1 state preserved: ${same}`);

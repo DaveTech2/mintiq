@@ -20,12 +20,15 @@
     "@near-wallet-selector/meteor-wallet": "^10.1.4",
     "@near-wallet-selector/modal-ui": "^10.1.4",
     "@near-wallet-selector/my-near-wallet": "^10.1.4",
+    "buffer": "^6.0.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "lucide-react": "^1.71.0",
     "near-api-js": "^5.1.1",
     "near-js-tx2": "npm:@near-js/transactions@^2.5.1",
     "near-sandbox": "^0.3.5",
-    "near-workspaces": "^5.0.0"
+    "near-workspaces": "^5.0.0",
+    "process": "^0.11.10"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.7.0",

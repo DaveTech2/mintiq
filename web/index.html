@@ -3,13 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mintiq — NFTs that hire and earn</title>
+    <meta name="theme-color" content="#0B0B0B" />
+    <meta name="description" content="Mintiq: NFTs with a treasury, a mission and an agent that hires, pays and invests under rules enforced on NEAR. Testnet demo." />
+    <title>Mintiq — NFTs that hire, pay and earn (NEAR testnet)</title>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:title" content="Mintiq: NFTs that hire, pay and earn (free on NEAR testnet)" />
+    <meta property="og:description" content="Mint an NFT with a treasury and a mission. Its agent posts jobs, scores work and invests idle funds under rules the contract enforces. Free on testnet." />
+    <meta property="og:image" content="https://mintiq-pink.vercel.app/og-image.png" />
+    <meta property="og:url" content="https://mintiq-pink.vercel.app" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      body { margin: 0; background: #F5F3EF; }
+      #splash { position: fixed; inset: 0; display: grid; place-items: center; background: #F5F3EF; z-index: 999; transition: opacity .3s ease; }
+      #splash img { width: 88px; height: 88px; animation: pulse 1.2s ease-in-out infinite; }
+      @keyframes pulse { 50% { transform: scale(.9); opacity: .7; } }
+      @media (prefers-reduced-motion: reduce) { #splash img { animation: none; } }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <img src="/mintiq-mark.png" alt="" />
+    </div>
     <div id="root"></div>
+    <noscript>Mintiq needs JavaScript to read NEAR testnet and connect your wallet.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

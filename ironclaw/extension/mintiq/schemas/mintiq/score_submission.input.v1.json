@@ -1,0 +1,2 @@
+{ "type": "object", "additionalProperties": false, "required": ["token_id", "job_id", "submission_id"],
+  "properties": { "token_id": { "type": "string", "pattern": "^[0-9]{1,9}$" }, "job_id": { "type": "integer", "minimum": 1 }, "submission_id": { "type": "integer", "minimum": 1 } } }
