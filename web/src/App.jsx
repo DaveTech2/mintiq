@@ -246,7 +246,7 @@ function Landing({ go, account, walletReady, tokens }) {
       <section className="hero">
         <div className="hero-glow" aria-hidden="true" />
         <div className="container hero-grid">
-          <div>
+          <div className="hero-copy">
             <div className="hero-badge-row"><Logo size={44} /><span className="eyebrow"><Sparkles size={14} aria-hidden="true" /> NEAR · NFTs that do something</span></div>
             <h1>An NFT with a treasury, a mission, and an agent that <em>gets work done</em>.</h1>
             <p className="lead">
@@ -262,7 +262,7 @@ function Landing({ go, account, walletReady, tokens }) {
               {!account && <Link to="/mint" go={go} className="btn secondary lg"><Sparkles size={18} aria-hidden="true" /> Mint your Mintiq</Link>}
               <Link to={`/app/${DEMO}`} go={go} className="btn ghost lg">View demo NFT <ArrowRight size={18} aria-hidden="true" /></Link>
             </div>
-            <p className="hint">{tokens ? `${tokens.length} Mintiq NFTs live on testnet.` : "Loading live testnet state…"} Free on testnet: no mint fee, and you can <a href={FAUCET} target="_blank" rel="noreferrer">get free test NEAR</a> for a testnet wallet (MyNearWallet, Meteor, HERE or Intear).</p>
+            <p className="hint hero-note">{tokens ? `${tokens.length} Mintiq NFTs live on testnet.` : "Loading live testnet state…"} Free on testnet: no mint fee, and you can <a href={FAUCET} target="_blank" rel="noreferrer">get free test NEAR</a> for a testnet wallet (MyNearWallet, Meteor, HERE or Intear).</p>
           </div>
           <HeroCard tokens={tokens} />
         </div>
