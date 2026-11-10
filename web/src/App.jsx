@@ -183,7 +183,7 @@ function App() {
   );
 }
 
-// ── Theme (white / black). index.html sets data-theme before React renders. ─────
+// ── Theme (cream / deep green). index.html sets data-theme before React renders. ─────
 function currentTheme() {
   return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 }
@@ -208,7 +208,7 @@ function ThemeToggle() {
   function toggle() {
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("mintiq-theme", next); } catch {}
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0A0A0A" : "#F5F3EF");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0F2A1A" : "#F5F3EF");
     window.dispatchEvent(new Event("mintiq-theme"));
   }
   return (

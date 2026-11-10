@@ -1,4 +1,4 @@
-/* ── Themes: milky cream (light) and black (dark). Green #94C447 accent in both, black text on green. ── */
+/* ── Themes: milky cream (light) and deep green (dark). Green #94C447 accent in both, black text on green. ── */
 :root, html[data-theme="light"] {
   --bg: #f5f3ef;
   --surface: #fbfaf7;
@@ -39,33 +39,34 @@
   color-scheme: light;
 }
 html[data-theme="dark"] {
-  --bg: #000000;
-  --surface: #121212;
-  --surface-2: #1b1b1b;
-  --text: #ffffff;
-  --muted: #b3b3b3;
-  --line: #262626;
-  --line-2: #3a3a3a;
-  --chrome-bg: #0a0a0a;
-  --chrome-text: #ffffff;
-  --chrome-muted: #b3b3b3;
-  --chrome-line: #1f1f1f;
-  --chrome-hover: rgba(255,255,255,.08);
-  --hero-bg: #0a0a0a;
-  --footer-bg: #0a0a0a;
+  /* deep forest green, tuned to the logo's lime; cream text */
+  --bg: #0f2a1a;
+  --surface: #173b27;
+  --surface-2: #1d4630;
+  --text: #f5f3ef;
+  --muted: #c2cdbf;
+  --line: #24503a;
+  --line-2: #326148;
+  --chrome-bg: rgba(15,42,26,.92);
+  --chrome-text: #f5f3ef;
+  --chrome-muted: #c2cdbf;
+  --chrome-line: #20482f;
+  --chrome-hover: rgba(245,243,239,.08);
+  --hero-bg: #0f2a1a;
+  --footer-bg: #0b2214;
   --accent-text: #a8d660;
   --edge: #94c447;
-  --inverse-bg: #ffffff;
-  --inverse-text: #0b0b0b;
-  --inverse-hover: #e6e6e6;
-  --focus: #ffffff;
-  --input-bg: #0a0a0a;
-  --ok-bg: #1c2a0c; --ok-line: #3f5e17; --ok-text: #b9e27a;
-  --err-bg: #2d1210; --err-line: #6b2620; --err-text: #ff8a7a;
-  --warn-bg: #2b2108; --warn-line: #6b5216; --warn-text: #f5c66b;
-  --skel-1: #1a1a1a; --skel-2: #2a2a2a;
-  --shadow: 0 14px 34px rgba(0, 0, 0, 0.6);
-  --ghost-num: rgba(255,255,255,.08);
+  --inverse-bg: #f5f3ef;
+  --inverse-text: #0f2a1a;
+  --inverse-hover: #e6e2da;
+  --focus: #f5f3ef;
+  --input-bg: #12301f;
+  --ok-bg: #1f4a22; --ok-line: #4a7a22; --ok-text: #c3e88a;
+  --err-bg: #3a1b17; --err-line: #7a2c24; --err-text: #ff9a8a;
+  --warn-bg: #3a2e0c; --warn-line: #75591a; --warn-text: #f5c66b;
+  --skel-1: #1d4630; --skel-2: #26553b;
+  --shadow: 0 14px 34px rgba(3, 14, 8, 0.55);
+  --ghost-num: rgba(245,243,239,.08);
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -162,8 +163,8 @@ code { font-family: var(--mono); font-size: 0.85em; background: var(--surface-2)
 html[data-theme="light"] .hero h1 em { background: linear-gradient(transparent 62%, rgba(148,196,71,.55) 62%); color: var(--text); }
 .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 26px 0 14px; }
 .cta-row.center { justify-content: center; }
-.hero-card { transform: rotate(1.5deg); box-shadow: 8px 8px 0 var(--accent); color: var(--text); }
-.hero-card:hover { transform: rotate(0deg) translateY(-4px); }
+.hero-card { transform: none; box-shadow: 8px 8px 0 var(--accent); color: var(--text); }
+.hero-card:hover { transform: translateY(-4px); }
 @media (max-width: 900px) { .hero-grid { grid-template-columns: 1fr; } .hero-card { transform: none; max-width: 460px; } }
 
 /* nft card + art */
@@ -328,7 +329,7 @@ form.card:hover, .card.form:hover { transform: none; }            /* forms stay 
 .nft-card .nft-art { overflow: hidden; }
 .nft-card .nft-art svg { transition: transform .2s ease; }
 .nft-card:hover .nft-art svg { transform: scale(1.05); }
-.hero-card:hover { transform: rotate(0deg) translateY(-4px); box-shadow: 10px 10px 0 var(--accent); }
+.hero-card:hover { transform: translateY(-4px); box-shadow: 10px 10px 0 var(--accent); }
 
 .nav-links a { position: relative; }
 .nav-links a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--green);
@@ -670,3 +671,49 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   .hero-badge-row .eyebrow { font-size: 0.68rem; letter-spacing: .03em; }
 }
 @media (max-width: 900px) { .hero-badge-row { width: 100%; justify-content: center !important; margin-left: auto; margin-right: auto; } }
+
+/* ── Layout pass (Nov 10): straight, centered, everything fits ── */
+/* Hero NFT card sits straight (no tilt); the offset green shadow stays. */
+.hero-card { transform: none; }
+/* Keep the logo M beside the pill on phones too, just smaller. */
+@media (max-width: 480px) {
+  .hero-badge-row { gap: 8px; flex-wrap: nowrap; }
+  .hero-badge-row .logo-anim { display: inline-block !important; width: 42px !important; height: 22px !important; flex: none; }
+  .hero-badge-row .eyebrow { white-space: nowrap; font-size: 0.66rem; padding: 6px 11px; letter-spacing: .03em; min-width: 0; }
+}
+@media (max-width: 340px) { .hero-badge-row { flex-wrap: wrap; } .hero-badge-row .eyebrow { white-space: normal; } }
+/* Notices: icon never squeezes the text off-center */
+.notice > svg { flex: none; }
+.notice { align-items: flex-start; line-height: 1.5; }
+.notice > svg { margin-top: 2px; }
+/* Card headers (activity feed etc.) wrap cleanly on narrow screens */
+.activity > .row-between { flex-wrap: wrap; row-gap: 4px; }
+.activity > .row-between h3 { white-space: nowrap; }
+/* Reserve health card stacks on phones */
+@media (max-width: 600px) {
+  .health-card { flex-direction: column; align-items: stretch; }
+  .health-card .btn { align-self: flex-start; }
+}
+/* Leaderboard: stacked rows on phones instead of a sideways-scrolling table */
+@media (max-width: 640px) {
+  .table-card { padding: 6px; overflow: visible; }
+  .board, .board tbody { display: block; width: 100%; }
+  .board thead { display: none; }
+  .board-row { display: grid; grid-template-columns: 34px repeat(3, minmax(0, 1fr)); column-gap: 8px; row-gap: 8px; padding: 14px 10px; border-bottom: 1px solid var(--line); border-radius: var(--r-inset); }
+  .board-row:last-child { border-bottom: 0; }
+  .board td { display: block; padding: 0; border: 0; min-width: 0; }
+  .board td.rank { grid-column: 1; grid-row: 1; align-self: center; }
+  .board td.name-cell { grid-column: 2 / span 2; grid-row: 1; min-width: 0; }
+  .board td.score-cell { grid-column: 4; grid-row: 1; align-self: center; text-align: right; }
+  .board td.stat { grid-row: 2; }
+  .board td.stat:nth-child(3) { grid-column: 2; }
+  .board td.stat:nth-child(4) { grid-column: 3; }
+  .board td.stat:nth-child(5) { grid-column: 4; }
+  .board td.health-cell { grid-column: 2 / span 3; grid-row: 3; min-width: 0; display: grid; gap: 4px; }
+  .board td[data-label]::before { content: attr(data-label); display: block; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin-bottom: 2px; }
+  .board td.score-cell strong { font-family: var(--display); font-size: 1.15rem; }
+  .board-name { min-width: 0; }
+  .board-name > span { min-width: 0; }
+  .board-name strong { overflow-wrap: anywhere; line-height: 1.3; }
+  .board-name .muted { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

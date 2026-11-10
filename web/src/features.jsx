@@ -354,12 +354,12 @@ export function LeaderboardPage({ go }) {
               {rows.map(({ n, p }, i) => (
                 <tr key={n.token_id} onClick={() => go(`/nft/${n.token_id}`)} className="board-row">
                   <td className="rank">{i < 3 ? <Medal size={16} className={`medal m${i}`} aria-hidden="true" /> : null}{i + 1}</td>
-                  <td><Link to={`/nft/${n.token_id}`} go={go} className="board-name"><NftArt id={n.token_id} name={n.name} small /><span><strong>{n.name}</strong><span className="muted small">#{n.token_id} · {short(n.owner_id)}</span></span></Link></td>
-                  <td>{n.track_record.jobs_completed}</td>
-                  <td>{formatNear(n.track_record.total_earned)}</td>
-                  <td>{formatNear(n.track_record.total_spent)}</td>
-                  <td className="health-cell"><ReserveBar nft={n} compact /><span className="muted small">{p.health.label}</span></td>
-                  <td><strong>{p.score}</strong></td>
+                  <td className="name-cell"><Link to={`/nft/${n.token_id}`} go={go} className="board-name"><NftArt id={n.token_id} name={n.name} small /><span><strong>{n.name}</strong><span className="muted small">#{n.token_id} · {short(n.owner_id)}</span></span></Link></td>
+                  <td className="stat" data-label="Jobs">{n.track_record.jobs_completed}</td>
+                  <td className="stat" data-label="Earned">{formatNear(n.track_record.total_earned)}</td>
+                  <td className="stat" data-label="Spent">{formatNear(n.track_record.total_spent)}</td>
+                  <td className="health-cell" data-label="Reserve health"><ReserveBar nft={n} compact /><span className="muted small">{p.health.label}</span></td>
+                  <td className="score-cell" data-label="Score"><strong>{p.score}</strong></td>
                 </tr>
               ))}
             </tbody>
