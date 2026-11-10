@@ -226,6 +226,30 @@ Résumé and leaderboard pages are public (they are a track record, not a secret
 - NEP-171 approvals are accepted and ignored (`approval_id` is not implemented).
 - Hosted demo should stay up through judging (to 18 Nov 2026, ideally 25 Nov 2026).
 
+## NEAR tech used
+
+| NEAR technology | How Mintiq uses it |
+| --- | --- |
+| **NEP-171 (non-fungible tokens)** | Each Mintiq is an NEP-171 token. `nft_transfer` (1 yoctoNEAR) moves the whole business: treasury, jobs, track record and control of the agent. |
+| **Dynamic NFTs** | Token state (treasury balance, jobs, scores, rules) changes on-chain as the agent works, and the résumé page `/nft/:id` reads it live. |
+| **Function-call access keys** | The hosted agent signs with a key limited to `post_job`, `record_evaluation`, `invest_idle`, `harvest` and `demo_accrue` on the Mintiq contract. NEAR rejects transfers and calls to any other contract. |
+| **Smart contracts (near-sdk 5, Rust)** | `contracts/mintiq` (NFT + per-token treasury, jobs, spend rules) and `contracts/yield-pool` (testnet yield pool, simulated rate). |
+| **NEAR AI Cloud** | LLM judge for submitted work (`z-ai/glm-5.3-flash`), with a labelled built-in fallback scorer. |
+| **NEAR Wallet Selector** | Wallet connect for minting, hiring and transfers (MyNearWallet, Meteor, HERE, Intear). |
+| **IronClaw** | The agent is also packaged as an IronClaw extension in `ironclaw/`. |
+| **NEAR testnet + public RPC** | Everything runs on testnet; test NEAR comes from the free faucet. |
+
+## Built with (disclosure)
+
+Per HACKATHON.md Q-005, here is everything Mintiq is built on that we did not write during the hackathon window:
+
+- **Rust:** `near-sdk` 5.30.1.
+- **JavaScript:** `near-api-js`, `@near-js/transactions`, `@near-wallet-selector/*` (core, modal-ui, my-near-wallet, meteor-wallet, here-wallet, intear-wallet), `near-workspaces` and `near-sandbox` (tests), `express`, `cors`, `react`, `react-dom`, `vite`, `@vitejs/plugin-react`, `lucide-react` (icons), `buffer`, `process`.
+- **Hosting:** Vercel (site, API functions, daily cron) and GitHub Actions (15-minute agent cycle).
+- **Video:** Microsoft Edge TTS voice, Playwright and ffmpeg for the backup demo video.
+- **AI-assisted code:** most of the code, docs and the demo video were written with AI coding assistants (Grok Bot and Claude Code), directed and reviewed by the team.
+- **Baseline:** none. Mintiq was started from scratch during the hackathon window; there is no pre-hackathon code. Every commit is in this repository's history.
+
 ## Track fit
 
 Primary track: **NFTs That Do Something** (`nfts`). The NFT is the business: it owns money, hires, keeps a public history, and transfers as a unit.
@@ -248,4 +272,4 @@ Related tracks the same prototype also fits, if judges want to score them: **Aut
 
 ## License
 
-Apache-2.0
+Apache-2.0. See [`LICENSE`](LICENSE).
