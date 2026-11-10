@@ -169,8 +169,9 @@ function App() {
           </nav>
           <div className="footer-col">
             <h4>Testnet</h4>
-            <p>Rules live in the treasury contract on NEAR testnet. Free to try, test NEAR has no cash value and the 5% demo yield is simulated.</p>
-            <p>Scoring: NEAR AI Cloud, with a built-in scorer as fallback.</p>
+            <p>Rules live in the treasury contract on NEAR testnet. Free to try, test NEAR has no cash value and the demo yield is simulated.</p>
+            <p>Scoring: a built-in rule-based scorer. The NEAR AI Cloud judge is built in and switches on once the account is funded.</p>
+            <p>The agent runs on its own every 15 minutes.</p>
           </div>
         </div>
         <div className="container footer-bottom">
@@ -266,7 +267,7 @@ function Landing({ go, account, walletReady, tokens }) {
           {[
             { icon: Wallet, t: "Connect", d: "Use any NEAR testnet wallet. Your wallet signs every write; no keys live on this site." },
             { icon: Sparkles, t: "Mint", d: "Name your NFT, write its mission, fund a small treasury and set the max spend, reserve floor and earnings split." },
-            { icon: Bot, t: "Agent works", d: "Post a job. Anyone can submit. The agent scores each submission (NEAR AI Cloud, or the built-in scorer as fallback) and records it on-chain." },
+            { icon: Bot, t: "Agent works", d: "Post a job. Anyone can submit. Every 15 minutes the agent scores new submissions with its built-in scorer and records the score and reasoning on-chain. No one has to click." },
             { icon: CheckCircle2, t: "You approve", d: "Only you can pay a contributor. Invest idle funds in the approved pool and harvest earnings by your split." },
           ].map((s, i) => (
             <li key={s.t} className="card step">
@@ -575,6 +576,12 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
             </div>
           </div>
 
+          <div className="card notice auto-note"><Bot size={18} aria-hidden="true" /> The agent runs on its own every 15 minutes. It scores new submissions and invests idle funds within these rules. Only the owner can approve payment.</div>
+
+          <div id="rules"><RuleBreakPanel nft={nft} /></div>
+
+          <ActivityFeed tokenId={String(nft.token_id)} limit={8} title="This NFT's activity" showToken={false} />
+
           <LoopNumbers nft={nft} />
           <div className="card health-card"><ReserveBar nft={nft} /><Link to={`/nft/${nft.token_id}`} go={go} className="btn ghost sm">View résumé <ArrowRight size={15} aria-hidden="true" /></Link></div>
 
@@ -584,13 +591,9 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
             <div className="card notice"><Lock size={18} aria-hidden="true" /> {account ? "You're viewing someone else's NFT. You can submit work to open jobs." : "Connect a wallet to submit work, or mint your own NFT to post jobs."}</div>
           )}
 
-          <div id="rules"><RuleBreakPanel nft={nft} /></div>
-
           <JobsBoard nft={nft} account={account} isOwner={isOwner} busy={busy} act={act} send={send} />
 
           {isOwner && <TransferPanel nft={nft} send={send} toast={toast} onDone={() => Promise.all([load(), loadTokens()])} />}
-
-          <ActivityFeed tokenId={String(nft.token_id)} limit={12} title="This NFT's activity" showToken={false} />
 
           {nft.token_id === DEMO && (deployed.transactions || []).length > 0 && (
             <details className="card txs">
@@ -684,12 +687,20 @@ function OwnerPanel({ nft, idle, busy, act, send }) {
   );
 }
 
+/** Name the scorer that actually scored this NFT's work, not the one we hope to use. */
+function scorerLabel(nft) {
+  const evals = (nft.jobs || []).flatMap((j) => (j.submissions || []).map((s) => s.evaluation).filter(Boolean));
+  const ai = evals.some((e) => /^NEAR AI Cloud/.test(e.evaluator || ""));
+  if (ai) return "Scored by NEAR AI Cloud, with the built-in scorer as backup";
+  return "Scored by the built-in rule-based scorer · NEAR AI judge ready, not yet funded";
+}
+
 function JobsBoard({ nft, account, isOwner, busy, act, send }) {
   const [drafts, setDrafts] = useState({});
   const jobs = (nft.jobs || []).slice().reverse();
   return (
     <section className="jobs">
-      <div className="row-between"><h2>Jobs</h2><span className="muted small">Scoring: NEAR AI Cloud first, built-in scorer fallback</span></div>
+      <div className="row-between"><h2>Jobs</h2><span className="muted small">{scorerLabel(nft)}</span></div>
       {jobs.length === 0 && <div className="card empty"><Briefcase size={28} aria-hidden="true" /><p>No jobs yet.{isOwner ? " Post one above." : ""}</p></div>}
       {jobs.map((j) => {
         const unscored = (j.submissions || []).filter((s) => !s.evaluation).length;

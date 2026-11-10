@@ -99,7 +99,16 @@ bash scripts/build-deploy.sh   # site + /api functions into web/.deploy
 cd web/.deploy && npx vercel deploy --prod
 ```
 
-Serverless functions (`web/api-src/`): `/api/score` (public scoring), `/api/break` (rule-break demo), `/api/activity` (feed) and `/api/agent` (IronClaw relay, bearer token). They sign with the agent's function-call key from the `MINTIQ_AGENT_KEY` env var. `NEARAI_API_KEY` enables the NEAR AI Cloud judge (it currently returns HTTP 402, so live scores come from the labelled built-in fallback). Keys live in `.mintiq/` (gitignored) and Vercel env, never in the repo or browser.
+Serverless functions (`web/api-src/`): `/api/score` (public scoring), `/api/break` (rule-break demo), `/api/activity` (feed), `/api/agent` (IronClaw relay, bearer token) and `/api/cycle` (autonomous agent run, bearer token). They sign with the agent's function-call key from the `MINTIQ_AGENT_KEY` env var. `NEARAI_API_KEY` enables the NEAR AI Cloud judge (it currently returns HTTP 402, so live scores come from the labelled built-in fallback). Keys live in `.mintiq/` (gitignored) and Vercel env, never in the repo or browser.
+
+### The agent runs on its own
+
+`/api/cycle` runs one agent pass over every NFT that uses this agent. It scores unscored submissions and invests idle funds above the reserve and open job budgets, skipping anything under 0.05 NEAR. No one clicks anything. Two schedules call it:
+
+- `.github/workflows/agent-cycle.yml`, every 15 minutes (GitHub Actions; free)
+- a daily Vercel cron (the Hobby plan allows one run a day), as a backup
+
+Setup once: generate a secret (`openssl rand -hex 32`), add it as `CRON_SECRET` in Vercel env, add the same value as the `MINTIQ_CRON_SECRET` Actions secret on GitHub, then redeploy. Run it by hand from the Actions tab with "Run workflow".
 
 Upgrading the testnet contract in place: `npm run build:wasm && node scripts/upgrade-testnet.mjs` (fails if demo token state changes).
 
@@ -109,7 +118,7 @@ Upgrading the testnet contract in place: `npm run build:wasm && node scripts/upg
 contracts/mintiq/      NFT + treasury + jobs + rules (near-sdk 5)
 contracts/yield-pool/  Labelled demo yield destination
 web/src/               React site (Vite, NEAR Wallet Selector)
-web/api-src/           Vercel functions: score, break, activity, agent
+web/api-src/           Vercel functions: score, break, activity, agent, cycle
 app/src/               Agent, evaluator (NEAR AI + fallback), Agent Market simulation
 ironclaw/              IronClaw extension packaging the agent
 scripts/               build, deploy, testnet upgrade, E2E helpers, agent-market-live (dry run)
@@ -122,6 +131,7 @@ docs/                  PITCH, testnet log, Agent Market notes
 | --- | --- |
 | Contract, wallet mint, hire/pay, invest/harvest, transfer | Live on testnet |
 | Agent signer | Function-call key on Vercel (not a TEE) |
+| Autonomy | Agent runs every 15 min via GitHub Actions → `/api/cycle` (scores and invests; only the owner pays) |
 | Scoring | NEAR AI Cloud wired; key returns HTTP 402, so live scores are the built-in fallback and labelled so |
 | Yield | Demo pool with simulated yield, labelled |
 | Agent Market | Not posted (real money, no testnet); dry-run script and requirements in `docs/AGENT_MARKET_LIVE.md` |

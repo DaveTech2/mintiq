@@ -624,3 +624,12 @@ html[data-theme="light"] .toast { background: var(--surface); }
 .brand { gap: 8px; }
 .x-link { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: 6px 12px; border-radius: var(--r-pill); border: 1px solid var(--line); color: var(--text); font-weight: 600; font-size: .84rem; transition: border-color .15s ease, background .15s ease; }
 .x-link:hover { text-decoration: none; border-color: var(--accent); background: rgba(148,196,71,.12); }
+
+/* Autonomy note + tighter mobile dashboard */
+.auto-note { border-color: color-mix(in srgb, var(--accent, #94C447) 45%, transparent); }
+@media (max-width: 600px) {
+  .stat-grid { gap: 8px; }
+  .stat-grid .card.stat { padding: 12px; }
+  .stat-grid .stat-value { font-size: 1.15rem; }
+  .stat-grid .stat-sub { font-size: 0.72rem; }
+}

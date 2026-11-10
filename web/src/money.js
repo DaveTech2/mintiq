@@ -23,6 +23,8 @@ export function formatNear(yocto) {
   const whole = y / YOCTO;
   const frac = y % YOCTO;
   if (frac === 0n) return `${whole} NEAR`;
-  const fracStr = frac.toString().padStart(24, "0").replace(/0+$/, "").slice(0, 4);
-  return `${whole}.${fracStr} NEAR`;
+  // Fewer decimals as amounts grow: 11.31, 1.875, 0.0315.
+  const places = whole >= 10n ? 2 : whole >= 1n ? 3 : 4;
+  const fracStr = frac.toString().padStart(24, "0").slice(0, places).replace(/0+$/, "");
+  return fracStr ? `${whole}.${fracStr} NEAR` : `${whole} NEAR`;
 }
