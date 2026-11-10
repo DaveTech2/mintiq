@@ -13,7 +13,7 @@
         if (t !== "light" && t !== "dark") t = window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         document.documentElement.dataset.theme = t;
         var m = document.querySelector('meta[name="theme-color"]');
-        if (m) m.setAttribute("content", t === "dark" ? "#0F2A1A" : "#F5F3EF");
+        if (m) m.setAttribute("content", t === "dark" ? "#0A0A0A" : "#F5F3EF");
       })();
     </script>
     <meta name="description" content="Mintiq: NFTs with a treasury, a mission and an agent that hires, pays and invests under rules enforced on NEAR. Testnet demo." />
@@ -31,7 +31,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
       body { margin: 0; background: #F5F3EF; }
-      html[data-theme="dark"] body, html[data-theme="dark"] #splash { background: #0F2A1A; }
+      html[data-theme="dark"] body, html[data-theme="dark"] #splash { background: #000000; }
       #splash { position: fixed; inset: 0; display: grid; place-items: center; background: #F5F3EF; z-index: 999; transition: opacity .3s ease; }
       #splash .sp { position: relative; width: 160px; height: 83px; animation: sp-pulse 1.6s ease-in-out infinite; will-change: transform; }
       #splash img { width: 100%; height: 100%; display: block; animation: sp-glow 1.6s ease-in-out infinite; will-change: filter; }
