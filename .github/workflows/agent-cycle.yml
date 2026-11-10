@@ -20,4 +20,5 @@ jobs:
           if [ -z "$SECRET" ]; then echo "MINTIQ_CRON_SECRET not set; skipping"; exit 0; fi
           code=$(curl -sS -o out.json -w "%{http_code}" -H "Authorization: Bearer $SECRET" "$SITE/api/cycle")
           cat out.json; echo
+          if [ "$code" = "404" ]; then echo "::warning::/api/cycle not deployed yet; skipping"; exit 0; fi
           test "$code" = "200"
