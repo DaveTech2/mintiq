@@ -141,3 +141,20 @@ A visitor still cannot:
 - Score submissions themselves. Only the agent records scores.
 - Pay out of someone else's treasury, or invest outside the approved list.
 - Use a live Agent Market job. That is still a local simulation, because the market has no testnet.
+
+## v3: three moments (10 Nov 2026)
+
+| Step | Signer | Result | Tx |
+| --- | --- | --- | --- |
+| Contract upgrade: NEP-171 `nft_transfer` (1 yocto, `approval_id`), state preserved | mintiq7f109e53.testnet | ok | [7F9a6B…](https://testnet.nearblocks.io/txns/7F9a6Byor58iQ5hcX5PrFDmS9VVoiATBYzVCNWcCP8ku) |
+| M1 agent commits 5 NEAR to one task on #1 (max 2.5) | miqagt7f109e53.testnet | `ERR_OVERSPEND` | [3KM6Xa…](https://testnet.nearblocks.io/txns/3KM6XaRKsJjvhmqsXmAsRxz9CcnYsEvCQjNAkku33fkM) |
+| M1 agent sends 2.5 NEAR to rogue-34ee08e3.testnet | miqagt7f109e53.testnet | `ERR_UNAPPROVED_DESTINATION` | [5t3EwE…](https://testnet.nearblocks.io/txns/5t3EwEnCNHZQYu9FW4XRF6tneNvn6R2LcmA6p2NaGktM) |
+| M1 from the live site button, #2 (0.2 NEAR vs max 0.1) | miqagt7f109e53.testnet | `ERR_OVERSPEND` | [AzQSe6…](https://testnet.nearblocks.io/txns/AzQSe6tfE3iMWK4BBRxQ2yeuPptxhSCfKGRCbXASS8a) |
+| M2 owner posts job #3 on #2 | miqvis111000.testnet | ok | [6g1pi6…](https://testnet.nearblocks.io/txns/6g1pi65Fko2TZdoCzLwKHUpWUUW2b816PA8VVSL2G8PT) |
+| M2 contributor submits | miqwrk111000.testnet | ok | [41YJFe…](https://testnet.nearblocks.io/txns/41YJFe9xxmEK1RoMdqVjD21a83Dzn1QkuzXgwWqgHD11) |
+| M2 agent scores 80/100 via live /api/score | miqagt7f109e53.testnet | ok | [8yuHkc…](https://testnet.nearblocks.io/txns/8yuHkcxhcVqc6N8fA2xyUT8QVvztwFRBcFSbU8mWtqki) |
+| M2 owner approves, 0.05 NEAR to miqwrk | miqvis111000.testnet | ok | [EFms3t…](https://testnet.nearblocks.io/txns/EFms3t35JR7oo2bJR58EUCLKLb49w19hGj1yZt6RdFti) |
+| M3 transfer with 0 deposit | miqvis111000.testnet | `ERR_REQUIRES_ONE_YOCTO` | [CKvdkH…](https://testnet.nearblocks.io/txns/CKvdkHbAmySXWL9K7bapSPw3vExJp9dn7rUaFB1wV4Xr) |
+| M3 transfer #3 to miqwrk111000.testnet | miqvis111000.testnet | ok | [3b3tNZ…](https://testnet.nearblocks.io/txns/3b3tNZawZsg27vR9cT86grQvnsTkZeCzidK9bSpGN4Da) |
+| M3 old owner posts a job on #3 | miqvis111000.testnet | `ERR_NOT_AGENT_OR_OWNER` | [7tkdP5…](https://testnet.nearblocks.io/txns/7tkdP54URSKkvs6RmMDYV6HXvSteKbRTuYSSej4E9wY) |
+| M3 new owner posts a job on #3 | miqwrk111000.testnet | ok | [3RfF5i…](https://testnet.nearblocks.io/txns/3RfF5inbR8wbn5oaLbpwtzHSdtPGKMguuWV5Kb1r6iqz) |

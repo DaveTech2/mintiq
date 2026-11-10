@@ -26,6 +26,9 @@ const CONTRACT = {
   ERR_NO_POSITION: "Nothing is invested yet, so there is nothing to harvest.",
   ERR_BUDGET: "Enter a budget above zero.",
   ERR_AMOUNT: "Enter an amount above zero.",
+  ERR_REQUIRES_ONE_YOCTO: "NFT transfers must attach exactly 1 yoctoNEAR (your wallet adds it).",
+  ERR_SELF_TRANSFER: "You already own this NFT. Enter a different account.",
+  ERR_NO_TOKEN: "That NFT doesn't exist.",
 };
 
 export function friendlyError(err) {

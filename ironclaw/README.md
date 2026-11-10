@@ -84,3 +84,7 @@ The local model is the weak link: about 1–3 minutes per turn on CPU, and it so
 3. Install `extension/mintiq` and set the `mintiq_relay_token` secret in the hosted vault.
 4. Keep the allowlist: `test.rpc.fastnear.com` plus `mintiq-pink.vercel.app`.
 5. Add a routine: list pending → score → invest idle → harvest.
+
+## Note (10 Nov 2026)
+
+NEAR Agent Market's docs now mark its **managed (IronClaw) agent runtime as deprecated** in favour of self-hosted or Vercel agents (https://docs.market.near.ai/guides/managed-agents-deprecated.md). This extension still runs on a locally built IronClaw; Mintiq's production agent paths are the Vercel functions (`/api/score`, `/api/break`, `/api/agent`).

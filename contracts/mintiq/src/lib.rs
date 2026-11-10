@@ -614,8 +614,24 @@ impl Contract {
         )
     }
 
-    /// Transfer ownership of the NFT. The treasury stays with the token.
-    pub fn nft_transfer(&mut self, receiver_id: AccountId, token_id: TokenId, memo: Option<String>) {
+    /// NEP-171 transfer ("selling the business"). Requires exactly 1 yoctoNEAR so
+    /// it can only be signed with a full-access key (wallet confirmation).
+    /// The treasury, rules, jobs and track record stay with the token, and every
+    /// owner check reads `token.owner_id`, so control moves to the new owner.
+    /// Approvals are not supported, so `approval_id` is accepted and ignored.
+    #[payable]
+    pub fn nft_transfer(
+        &mut self,
+        receiver_id: AccountId,
+        token_id: TokenId,
+        approval_id: Option<u64>,
+        memo: Option<String>,
+    ) {
+        require!(
+            env::attached_deposit() == NearToken::from_yoctonear(1),
+            "ERR_REQUIRES_ONE_YOCTO"
+        );
+        let _ = approval_id;
         let sender = env::predecessor_account_id();
         require!(sender != receiver_id, "ERR_SELF_TRANSFER");
         let token = self.token_mut(&token_id);
@@ -1008,8 +1024,8 @@ mod tests {
     fn transfer_moves_ownership_not_treasury() {
         let mut c = Contract::new();
         let id = mint_default(&mut c);
-        testing_env!(context(accounts(0), 0));
-        c.nft_transfer(accounts(4), id.clone(), Some("gift".into()));
+        testing_env!(context(accounts(0), 1));
+        c.nft_transfer(accounts(4), id.clone(), None, Some("gift".into()));
         let t = c.get_nft(id.clone());
         assert_eq!(t.owner_id, accounts(4));
         assert_liquid(yocto(t.liquid), n(50));
@@ -1223,4 +1239,49 @@ mod tests {
         testing_env!(context(accounts(4), 0));
         c.submit_work(id, job, "x".repeat(MAX_CONTENT_LEN + 1));
     }
+
+    #[test]
+    #[should_panic(expected = "ERR_REQUIRES_ONE_YOCTO")]
+    fn transfer_requires_one_yocto() {
+        let mut c = Contract::new();
+        let id = mint_default(&mut c);
+        testing_env!(context(accounts(0), 0));
+        c.nft_transfer(accounts(4), id, None, None);
+    }
+
+    #[test]
+    fn control_follows_token_after_transfer() {
+        let mut c = Contract::new();
+        let id = mint_default(&mut c);
+        testing_env!(context(accounts(0), 1));
+        c.nft_transfer(accounts(4), id.clone(), None, None);
+        // New owner can run owner ops (post a job, rotate the agent).
+        testing_env!(context(accounts(4), 0));
+        let job = c.post_job(id.clone(), "t".into(), "d".into(), U128(n(1)));
+        assert_eq!(job, 1);
+        c.set_agent(id.clone(), accounts(2));
+        assert_eq!(c.get_nft(id.clone()).agent_id, accounts(2));
+    }
+
+    #[test]
+    #[should_panic(expected = "ERR_NOT_AGENT_OR_OWNER")]
+    fn old_owner_loses_control_after_transfer() {
+        let mut c = Contract::new();
+        let id = mint_default(&mut c);
+        testing_env!(context(accounts(0), 1));
+        c.nft_transfer(accounts(4), id.clone(), None, None);
+        testing_env!(context(accounts(0), 0));
+        c.post_job(id, "t".into(), "d".into(), U128(n(1)));
+    }
+
+    #[test]
+    #[should_panic(expected = "ERR_NOT_OWNER")]
+    fn old_owner_cannot_transfer_again() {
+        let mut c = Contract::new();
+        let id = mint_default(&mut c);
+        testing_env!(context(accounts(0), 1));
+        c.nft_transfer(accounts(4), id.clone(), None, None);
+        c.nft_transfer(accounts(3), id, None, None);
+    }
+
 }

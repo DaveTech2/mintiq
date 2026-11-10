@@ -5,25 +5,13 @@ import {
 } from "lucide-react";
 import { formatNear } from "./money.js";
 import deployed from "./deployed.json";
-import { viewMethod } from "./rpc.js";
 import { initWallet, showModal, signedInAccount, signOut, callContract, outcomeHash, outcomeFailure, nearToYocto } from "./wallet.js";
 import { friendlyError } from "./errors.js";
 import { Logo, Skeleton, ToastProvider, useToast } from "./ui.jsx";
+import { ActivityFeed, RuleBreakPanel, TransferPanel, RuleSentence, ResumePage, LeaderboardPage, LoopNumbers, ReserveBar, oneLine } from "./features.jsx";
 
-const RPC = deployed.rpc;
-const CONTRACT = deployed.contracts.mintiq;
-const POOL = deployed.contracts.yieldPool;
-const AGENT = deployed.accounts.agent;
-const TX = deployed.explorerTx;
-const ACCT = deployed.explorerAccount;
-const DEMO = deployed.demoTokenId || "1";
-const view = (method, args = {}) => viewMethod(RPC, CONTRACT, method, args);
-// Free on testnet: amounts are shown in test NEAR only (no cash value, no USD rate).
-const usd = (y) => formatNear(y);
-const nearUsd = (n) => (Number.isFinite(Number(n)) ? `${Number(n)} NEAR` : "—");
-export const FAUCET = "https://docs.near.org/getting-started/faucet";
-const STORAGE_ALLOWANCE = "0.02";
-const short = (a) => (a && a.length > 22 ? `${a.slice(0, 9)}…${a.slice(-9)}` : a);
+import { RPC, CONTRACT, POOL, AGENT, TX, ACCT, DEMO, view, usd, nearUsd, FAUCET, STORAGE_ALLOWANCE, short, Link, NftArt } from "./shared.jsx";
+export { FAUCET };
 
 // ── Routing (path based; Vercel rewrites everything to index.html) ──────────
 function parseRoute() {
@@ -33,6 +21,9 @@ function parseRoute() {
   if (p === "/app") return { page: "app", token: new URLSearchParams(window.location.search).get("token") };
   const m = p.match(/^\/app\/(\d{1,9})$/);
   if (m) return { page: "app", token: m[1] };
+  const r = p.match(/^\/nft\/(\d{1,9})$/);
+  if (r) return { page: "nft", token: r[1] };
+  if (p === "/leaderboard") return { page: "leaderboard" };
   return { page: "404" };
 }
 function useRoute() {
@@ -49,14 +40,6 @@ function useRoute() {
   }, []);
   return [route, go];
 }
-function Link({ to, go, children, className, ...rest }) {
-  return (
-    <a href={to} className={className} onClick={(e) => { if (e.metaKey || e.ctrlKey) return; e.preventDefault(); go(to); }} {...rest}>
-      {children}
-    </a>
-  );
-}
-
 const TEMPLATES = {
   custom: { label: "Blank — write your own", name: "", mission: "" },
   meme: { label: "Meme Studio", name: "Meme Studio", mission: "Build a meme production business: hire writers for original meme concepts and grow the treasury." },
@@ -139,6 +122,7 @@ function App() {
             <Link to="/" go={go} aria-current={route.page === "home" ? "page" : undefined}>Overview</Link>
             <Link to="/mint" go={go} aria-current={route.page === "mint" ? "page" : undefined}>Mint</Link>
             <Link to="/app" go={go} aria-current={route.page === "app" ? "page" : undefined}>Dashboard</Link>
+            <Link to="/leaderboard" go={go} aria-current={route.page === "leaderboard" ? "page" : undefined}>Leaderboard</Link>
             <div className="theme-row"><span>Theme</span><ThemeToggle /></div>
             <WalletButton {...ctx} className="nav-wallet-mobile" />
           </nav>
@@ -155,6 +139,8 @@ function App() {
         {route.page === "home" && <Landing {...ctx} />}
         {route.page === "mint" && <MintPage {...ctx} />}
         {route.page === "app" && <Dashboard {...ctx} tokenId={route.token} />}
+        {route.page === "nft" && <ResumePage tokenId={route.token} go={go} />}
+        {route.page === "leaderboard" && <LeaderboardPage go={go} />}
         {route.page === "404" && <NotFound go={go} />}
       </main>
       <footer className="footer">
@@ -168,6 +154,8 @@ function App() {
             <Link to="/mint" go={go}>Mint</Link>
             <Link to="/app" go={go}>Dashboard</Link>
             <Link to={`/app/${DEMO}`} go={go}>Demo NFT</Link>
+            <Link to={`/nft/${DEMO}`} go={go}>Demo résumé</Link>
+            <Link to="/leaderboard" go={go}>Leaderboard</Link>
           </nav>
           <nav className="footer-col" aria-label="Resources">
             <h4>Resources</h4>
@@ -295,6 +283,21 @@ function Landing({ go, account, walletReady, tokens }) {
           <Feature icon={Gauge} t="On-chain track record" d="Jobs completed, contributors hired, spent and earned are stored with the NFT and exposed in its NEP-171 metadata." />
         </div>
       </section>
+
+      <section className="container section">
+        <div className="live-grid">
+          <ActivityFeed limit={8} title="Live on testnet" />
+          <div className="card moments">
+            <h3>See it in three moments</h3>
+            <ol>
+              <li><strong>Break the rules.</strong> Make the agent try to overspend or send funds to a stranger. The contract rejects it on-chain. <Link to={`/app/${DEMO}#rules`} go={go}>Try it</Link></li>
+              <li><strong>Hire for real.</strong> Post a job, anyone submits, the agent scores it with a reason, the owner pays. <Link to={`/app/${DEMO}`} go={go}>Open the demo</Link></li>
+              <li><strong>Sell the business.</strong> Transfer the NFT and its treasury, track record and agent go with it. <Link to={`/nft/${DEMO}`} go={go}>See a résumé</Link></li>
+            </ol>
+            <Link to="/leaderboard" go={go} className="btn ghost"><TrendingUp size={16} aria-hidden="true" /> Leaderboard</Link>
+          </div>
+        </div>
+      </section>
     </>
   );
 }
@@ -335,28 +338,6 @@ function HeroCard({ tokens }) {
           </>
         )}
       </div>
-    </div>
-  );
-}
-
-/** Deterministic generative art per token: gradient blob + hexagon mark. */
-function NftArt({ id = "1", name = "", small }) {
-  // Deterministic brand-palette art: black card, green/cream shapes, logo mark.
-  const seed = [...String(id) + name].reduce((a, c) => (a * 31 + c.charCodeAt(0)) % 997, 7);
-  const r1 = 40 + (seed % 40), cx = 30 + (seed % 140), cy = 20 + ((seed * 7) % 80);
-  const rot = (seed * 13) % 360;
-  return (
-    <div className={`nft-art ${small ? "small" : ""}`} aria-hidden="true">
-      <svg viewBox="0 0 200 120" preserveAspectRatio="xMidYMid slice">
-        <rect width="200" height="120" fill="#0B0B0B" />
-        <circle cx={cx} cy={cy} r={r1} fill="#94C447" opacity="0.9" />
-        <circle cx={200 - cx / 2} cy={120 - cy / 3} r={r1 * 0.7} fill="none" stroke="#F5F3EF" strokeWidth="1.5" opacity="0.5" />
-        <g transform={`translate(100 60) rotate(${rot})`} opacity="0.35">
-          <rect x="-70" y="-3" width="140" height="6" rx="3" fill="#F5F3EF" />
-        </g>
-        <rect x="68" y="28" width="64" height="64" rx="16" fill="#F5F3EF" />
-        <image href="/mintiq-mark.png" x="74" y="34" width="52" height="52" />
-      </svg>
     </div>
   );
 }
@@ -420,6 +401,18 @@ function MintPage({ account, walletReady, send, go, toast, loadTokens }) {
           <Field label="Mission" hint={`${m.mission.length}/500 · what should the agent hire people to do?`}>
             <textarea required maxLength={500} rows={3} placeholder="Commission short taglines and posters for independent design studios." value={m.mission} onChange={set("mission")} />
           </Field>
+          <div className="rule-sliders">
+            <Field label={`Max spend per task: ${m.maxPerTaskNear || 0} test NEAR`}>
+              <input type="range" min={0.01} max={1} step={0.01} value={Math.min(1, Number(m.maxPerTaskNear) || 0.01)} onChange={(e) => setM({ ...m, maxPerTaskNear: e.target.value })} aria-valuetext={`${m.maxPerTaskNear} NEAR per task`} />
+            </Field>
+            <Field label={`Reserve floor: ${m.reserveNear || 0} test NEAR`}>
+              <input type="range" min={0} max={Math.max(1, Number(m.treasuryNear) || 0)} step={0.01} value={Number(m.reserveNear) || 0} onChange={(e) => setM({ ...m, reserveNear: e.target.value })} aria-valuetext={`${m.reserveNear} NEAR reserve`} />
+            </Field>
+            <Field label={`Treasury: ${m.treasuryNear || 0} test NEAR`}>
+              <input type="range" min={0} max={5} step={0.05} value={Math.min(5, Number(m.treasuryNear) || 0)} onChange={(e) => setM({ ...m, treasuryNear: e.target.value })} aria-valuetext={`${m.treasuryNear} NEAR treasury`} />
+            </Field>
+          </div>
+          <RuleSentence max={m.maxPerTaskNear} reserve={m.reserveNear} reinvest={m.reinvestPct} />
           <div className="grid3">
             <Field label="Treasury (test NEAR)" hint={`Optional, 0 is fine · top up later · + ≤${STORAGE_ALLOWANCE} storage`}>
               <input inputMode="decimal" value={m.treasuryNear} onChange={set("treasuryNear")} />
@@ -492,6 +485,9 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
     setLoading(false);
   }, [selected]);
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    if (nft && window.location.hash === "#rules") setTimeout(() => document.getElementById("rules")?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
+  }, [nft?.token_id]);
 
   const list = useMemo(() => (mine && account ? (tokens || []).filter((t) => t.owner_id === account) : tokens || []), [tokens, mine, account]);
   const isOwner = account && nft && nft.owner_id === account;
@@ -575,13 +571,22 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
             </div>
           </div>
 
+          <LoopNumbers nft={nft} />
+          <div className="card health-card"><ReserveBar nft={nft} /><Link to={`/nft/${nft.token_id}`} go={go} className="btn ghost sm">View résumé <ArrowRight size={15} aria-hidden="true" /></Link></div>
+
           {isOwner ? (
             <OwnerPanel nft={nft} idle={idle} busy={busy} act={act} send={send} />
           ) : (
             <div className="card notice"><Lock size={18} aria-hidden="true" /> {account ? "You're viewing someone else's NFT. You can submit work to open jobs." : "Connect a wallet to submit work, or mint your own NFT to post jobs."}</div>
           )}
 
+          <div id="rules"><RuleBreakPanel nft={nft} /></div>
+
           <JobsBoard nft={nft} account={account} isOwner={isOwner} busy={busy} act={act} send={send} />
+
+          {isOwner && <TransferPanel nft={nft} send={send} toast={toast} onDone={() => Promise.all([load(), loadTokens()])} />}
+
+          <ActivityFeed tokenId={String(nft.token_id)} limit={12} title="This NFT's activity" showToken={false} />
 
           {nft.token_id === DEMO && (deployed.transactions || []).length > 0 && (
             <details className="card txs">
@@ -704,7 +709,8 @@ function JobsBoard({ nft, account, isOwner, busy, act, send }) {
                     {s.paid && <span className="badge green">paid</span>}
                   </div>
                   <pre>{s.content}</pre>
-                  {s.evaluation && <p className="muted small">{s.evaluation.reasoning}</p>}
+                  {s.evaluation && <p className="agent-says"><Bot size={14} aria-hidden="true" /> <strong>Agent:</strong> {oneLine(s.evaluation.reasoning)}</p>}
+                  {s.evaluation && <details className="muted small"><summary>Full reasoning</summary>{s.evaluation.reasoning}</details>}
                   {s.evaluation && <p className="scored-by small"><Bot size={13} aria-hidden="true" /> Scored by {s.evaluation.evaluator || "unknown"}</p>}
                   {isOwner && j.status === "Open" && s.evaluation && !s.paid && (
                     <button className="btn primary sm" disabled={!!busy} onClick={() => act(`pay${s.id}`, async () => {
