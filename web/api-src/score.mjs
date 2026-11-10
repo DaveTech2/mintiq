@@ -2,8 +2,8 @@
  * Vercel serverless function: POST /api/score { token_id }
  *
  * Runs one Mintiq agent cycle for a single token: scores that token's
- * unscored submissions with the built-in rule-based scorer and records the
- * score on-chain via the agent's FUNCTION-CALL key (can only call
+ * unscored submissions (NEAR AI Cloud first, built-in scorer as fallback)
+ * and records the score on-chain via the agent's FUNCTION-CALL key (can only call
  * post_job / record_evaluation / invest_idle / harvest / demo_accrue on the
  * treasury contract; it cannot transfer NEAR or approve payment).
  *

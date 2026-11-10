@@ -70,7 +70,7 @@ No sign-up is required for the first path. Use a desktop or phone browser. Test 
 3. **Do:** As owner, post a job with a budget under the max per task. From any testnet wallet (a second account is fine; the owner may also submit), submit work to that open job.\
    **See:** The job and submission appear on the NFT's dashboard and on NearBlocks.
 4. **Do:** Click **Ask agent to score**, or wait up to 15 minutes for the autonomous agent cycle.\
-   **See:** The agent records a score, pass/fail, a one-line reason and an evaluator label on-chain. Live scores currently come from the built-in scorer (the NEAR AI Cloud key returns HTTP 402) and are labelled that way.
+   **See:** The agent records a score, pass/fail, a one-line reason and an evaluator label on-chain. As of 10 Nov 2026 the live judge is NEAR AI Cloud (`z-ai/glm-5.3-flash`), using a key from NEAR Builders credits. If Cloud errors, the built-in rule-based scorer is used and labelled as a fallback.
 5. **Do:** As the current owner, approve and pay a passing submission.\
    **See:** The job budget leaves this NFT's treasury and arrives in the contributor's wallet. Earned / spent / treasury numbers update.
 6. **Do:** Transfer the NFT to another testnet account from the dashboard transfer form (NEP-171, 1 yoctoNEAR). Then try to post a job from the old wallet, and post one from the new wallet.\
@@ -99,6 +99,15 @@ Key transactions already on testnet. The full log, including the original deploy
 | Agent scores 80/100 pass: "Found 3 distinct ideas that fit the topic." | `miqagt7f109e53.testnet` | [`8yuHkc…`](https://testnet.nearblocks.io/txns/8yuHkcxhcVqc6N8fA2xyUT8QVvztwFRBcFSbU8mWtqki) |
 | Owner approves; 0.05 NEAR arrives at the contributor | `miqvis111000.testnet` | [`EFms3t…`](https://testnet.nearblocks.io/txns/EFms3t35JR7oo2bJR58EUCLKLb49w19hGj1yZt6RdFti) |
 
+**A hire scored by NEAR AI Cloud (NFT #2, 10 Nov 2026)**
+
+| Step | Signer | Tx |
+| --- | --- | --- |
+| Owner posts "3 taglines for a Lagos design studio (NEAR AI live check)", 0.05 NEAR | `miqvis111000.testnet` | [`9CYEfj…`](https://testnet.nearblocks.io/txns/9CYEfjX8jgF3HGihBHnY1pLb1zZ93JYYTdiKzqHwpHqH) |
+| Contributor submits three Lagos taglines | `miqwrk111000.testnet` | [`3ojddK…`](https://testnet.nearblocks.io/txns/3ojddKPcRWTeNQVC8Z57Abv4yyMfLQn7FbduwR3f9hrM) |
+| Agent scores 90/100 pass via live `/api/score`, evaluator `NEAR AI Cloud (z-ai/glm-5.3-flash)`: "Three short, distinct, original taglines grounded in Lagos identity…" | `miqagt7f109e53.testnet` | [`7VN7WX…`](https://testnet.nearblocks.io/txns/7VN7WXFJqR5tY9LkmeZqVFvGB4hqUPmgoCW4KYoWHcRh) |
+| Owner approves; 0.05 NEAR arrives at the contributor | `miqvis111000.testnet` | [`46cpaF…`](https://testnet.nearblocks.io/txns/46cpaFBN7cUfAW21iwLWH59XbftxmaQNsrFFLjm8Lnzf) |
+
 **Selling the business (NFT #3, Free Tester)**
 
 | Step | Result | Tx |
@@ -118,7 +127,7 @@ Contract upgraded in place for NEP-171 transfers (state preserved): [`7F9a6B…`
 | Rule-break demo (`/api/break`) | Live: the agent sends a real transaction; the contract rejects it; the failed tx stays on-chain |
 | Agent signer | Function-call key held in Vercel env (not a TEE) |
 | Autonomy | GitHub Actions calls `/api/cycle` every 15 minutes (plus a daily Vercel cron at 06:00 UTC). The agent scores unscored submissions and invests idle funds above the reserve and open job budgets, skipping amounts under 0.05 NEAR. Only the owner can pay. |
-| Scoring | NEAR AI Cloud is wired (`z-ai/glm-5.3-flash`); the key currently returns HTTP 402, so live scores are the built-in fallback and labelled so |
+| Scoring | Live on NEAR AI Cloud (`z-ai/glm-5.3-flash`) as of 10 Nov 2026; the key comes from NEAR Builders credits. The built-in rule-based scorer remains a labelled fallback |
 | Yield | Demo pool with a simulated 5% yield, labelled on the site and in this README |
 | Units | Test NEAR, not USDC. Testnet USDC (NEP-141) was considered; the treasury, payouts and storage all settle in native NEAR |
 | Agent Market | Not posted (real USD/USDC, no testnet). Dry-run script and requirements: [`docs/AGENT_MARKET_LIVE.md`](docs/AGENT_MARKET_LIVE.md) |
@@ -218,7 +227,7 @@ Résumé and leaderboard pages are public (they are a track record, not a secret
 
 ## Limits and roadmap
 
-- Live LLM scoring needs a funded NEAR AI Cloud account. The fallback is already labelled and tested.
+- Live LLM scoring is on via NEAR AI Cloud (NEAR Builders credits). The built-in scorer remains a labelled fallback if Cloud errors.
 - Yield is a labelled demo, not real staking.
 - A live hire on [market.near.ai](https://market.near.ai) would spend real money; it is documented but not posted.
 - Treasuries are contract-internal balances, not per-NFT NEAR sub-accounts.

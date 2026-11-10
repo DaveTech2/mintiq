@@ -170,7 +170,7 @@ function App() {
           <div className="footer-col">
             <h4>Testnet</h4>
             <p>Rules live in the treasury contract on NEAR testnet. Free to try, test NEAR has no cash value and the demo yield is simulated.</p>
-            <p>Scoring: a built-in rule-based scorer. The NEAR AI Cloud judge is built in and switches on once the account is funded.</p>
+            <p>Scoring: NEAR AI Cloud first (`z-ai/glm-5.3-flash`), with a labelled built-in rule-based scorer as fallback.</p>
             <p>The agent runs on its own every 15 minutes.</p>
           </div>
         </div>
@@ -692,7 +692,7 @@ function scorerLabel(nft) {
   const evals = (nft.jobs || []).flatMap((j) => (j.submissions || []).map((s) => s.evaluation).filter(Boolean));
   const ai = evals.some((e) => /^NEAR AI Cloud/.test(e.evaluator || ""));
   if (ai) return "Scored by NEAR AI Cloud, with the built-in scorer as backup";
-  return "Scored by the built-in rule-based scorer · NEAR AI judge ready, not yet funded";
+  return "Scored by the built-in rule-based scorer · NEAR AI Cloud is tried first";
 }
 
 function JobsBoard({ nft, account, isOwner, busy, act, send }) {

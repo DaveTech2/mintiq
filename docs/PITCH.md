@@ -30,6 +30,7 @@ Live site: https://mintiq-pink.vercel.app (NEAR testnet, free test NEAR, no real
 - Rule break, overspend: https://testnet.nearblocks.io/txns/3KM6XaRKsJjvhmqsXmAsRxz9CcnYsEvCQjNAkku33fkM
 - Rule break, unapproved account: https://testnet.nearblocks.io/txns/5t3EwEnCNHZQYu9FW4XRF6tneNvn6R2LcmA6p2NaGktM
 - Hire: post https://testnet.nearblocks.io/txns/6g1pi65Fko2TZdoCzLwKHUpWUUW2b816PA8VVSL2G8PT · submit https://testnet.nearblocks.io/txns/41YJFe9xxmEK1RoMdqVjD21a83Dzn1QkuzXgwWqgHD11 · score https://testnet.nearblocks.io/txns/8yuHkcxhcVqc6N8fA2xyUT8QVvztwFRBcFSbU8mWtqki · pay https://testnet.nearblocks.io/txns/EFms3t35JR7oo2bJR58EUCLKLb49w19hGj1yZt6RdFti
+- Hire scored by NEAR AI Cloud (90/100, `z-ai/glm-5.3-flash`): post https://testnet.nearblocks.io/txns/9CYEfjX8jgF3HGihBHnY1pLb1zZ93JYYTdiKzqHwpHqH · submit https://testnet.nearblocks.io/txns/3ojddKPcRWTeNQVC8Z57Abv4yyMfLQn7FbduwR3f9hrM · score https://testnet.nearblocks.io/txns/7VN7WXFJqR5tY9LkmeZqVFvGB4hqUPmgoCW4KYoWHcRh · pay https://testnet.nearblocks.io/txns/46cpaFBN7cUfAW21iwLWH59XbftxmaQNsrFFLjm8Lnzf
 - Sale: transfer https://testnet.nearblocks.io/txns/3b3tNZawZsg27vR9cT86grQvnsTkZeCzidK9bSpGN4Da · old owner blocked https://testnet.nearblocks.io/txns/7tkdP54URSKkvs6RmMDYV6HXvSteKbRTuYSSej4E9wY · new owner posts https://testnet.nearblocks.io/txns/3RfF5inbR8wbn5oaLbpwtzHSdtPGKMguuWV5Kb1r6iqz
 
 ## If something fails live

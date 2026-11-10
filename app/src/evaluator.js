@@ -14,10 +14,10 @@
 import { ruleBasedEvaluate, SCORER_LABEL } from "./scorer.js";
 
 const NEAR_AI_BASE = "https://cloud-api.near.ai/v1";
-const LLM_TIMEOUT_MS = Number(process.env.NEAR_AI_TIMEOUT_MS || 12_000);
+const LLM_TIMEOUT_MS = Number(process.env.NEAR_AI_TIMEOUT_MS || 20_000);
 export const DEFAULT_NEAR_AI_MODEL = "z-ai/glm-5.3-flash";
 const DISCOVER_TIMEOUT_MS = 15_000;
-const MAX_TOKENS = 300;
+const MAX_TOKENS = 1024;
 
 // Docs historically suggested z-ai/glm-5.2 or zai-org/GLM-5.1-FP8.
 // Prefer those when the live catalog still lists them; otherwise the
@@ -62,6 +62,8 @@ function shortReason(err) {
   if (status) return `HTTP ${status}`;
   const m = String(err?.message || err || "error");
   if (/timed out/i.test(m)) return "timeout";
+  if (/empty content/i.test(m)) return "empty content";
+  if (/non-JSON/i.test(m)) return "non-JSON output";
   return m.slice(0, 40);
 }
 
@@ -234,6 +236,24 @@ export async function discoverNearAiModel({ force = false } = {}) {
   }
 }
 
+
+function messageContent(data) {
+  const choice = data?.choices?.[0] || {};
+  const msg = choice.message || {};
+  const raw = msg.content;
+  if (typeof raw === "string" && raw.trim()) return raw;
+  if (Array.isArray(raw)) {
+    const joined = raw
+      .map((part) => (typeof part === "string" ? part : part?.text || part?.content || ""))
+      .join("\n")
+      .trim();
+    if (joined) return joined;
+  }
+  if (raw && typeof raw === "object" && typeof raw.text === "string" && raw.text.trim()) return raw.text;
+  const finish = choice.finish_reason || "unknown";
+  throw new Error(`Evaluator returned empty content (finish_reason=${finish})`);
+}
+
 async function llmEvaluate(job, content, { apiKey, baseUrl, model, fetchImpl, timeoutMs = LLM_TIMEOUT_MS }) {
   const payload = {
     model,
@@ -259,7 +279,7 @@ async function llmEvaluate(job, content, { apiKey, baseUrl, model, fetchImpl, ti
     apiKey,
     fetchImpl,
   });
-  const raw = data.choices?.[0]?.message?.content || "";
+  const raw = messageContent(data);
   const parsed = parseEvaluationJson(raw);
   const score = scoreFrom(parsed);
   const passed = passedFrom(parsed, score);

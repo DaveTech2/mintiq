@@ -1,6 +1,6 @@
 # Mintiq on NEAR testnet
 
-Public contract IDs, explorer links, and transaction hashes from the 10 Nov 2026 (Africa/Lagos) deploy. **No private keys.** The scripted demo used the built-in rule-based scorer (no LLM). Live NEAR AI Cloud judging was not exercised.
+Public contract IDs, explorer links, and transaction hashes from the 10 Nov 2026 (Africa/Lagos) deploy. **No private keys.** The original scripted demo used the built-in rule-based scorer. Live NEAR AI Cloud judging is on as of 10 Nov 2026 (see the live-check section below).
 
 Live dashboard (read-only, public): https://mintiq-pink.vercel.app
 
@@ -158,3 +158,22 @@ A visitor still cannot:
 | M3 transfer #3 to miqwrk111000.testnet | miqvis111000.testnet | ok | [3b3tNZ…](https://testnet.nearblocks.io/txns/3b3tNZawZsg27vR9cT86grQvnsTkZeCzidK9bSpGN4Da) |
 | M3 old owner posts a job on #3 | miqvis111000.testnet | `ERR_NOT_AGENT_OR_OWNER` | [7tkdP5…](https://testnet.nearblocks.io/txns/7tkdP54URSKkvs6RmMDYV6HXvSteKbRTuYSSej4E9wY) |
 | M3 new owner posts a job on #3 | miqwrk111000.testnet | ok | [3RfF5i…](https://testnet.nearblocks.io/txns/3RfF5inbR8wbn5oaLbpwtzHSdtPGKMguuWV5Kb1r6iqz) |
+
+## Live NEAR AI Cloud judge (10 Nov 2026, about 17:20 WAT)
+
+The production key is from **NEAR Builders credits**, stored only in Vercel as `NEARAI_API_KEY` (never in the repo). When that key is set, `app/src/evaluator.js` tries NEAR AI Cloud (`z-ai/glm-5.3-flash`) first. `NEARAI_JUDGE=0` forces the built-in scorer. The built-in rule-based scorer remains a labelled fallback on HTTP errors, timeouts, or unparseable output.
+
+- **Earlier the same day (about 11:55 WAT).** The previous key returned HTTP 402 `no_limit_configured`. See the v2.1 live check above.
+- **First call after the new key (token #2, job 4).** Cloud was reached, but `z-ai/glm-5.3-flash` spent the 300-token cap on hidden reasoning and returned empty/non-JSON content. Production recorded `Built-in rule-based scorer (no LLM); NEAR AI fallback (Evaluator returned non-JSON output)` (score 80 pass). `MAX_TOKENS` was raised to 1024 and the evaluator timeout to 20s, then redeployed.
+- **Live check (10 Nov 2026, about 17:20 WAT).** `POST https://mintiq-pink.vercel.app/api/score` on token #2 job 5 recorded **score 90, pass**, evaluator `NEAR AI Cloud (z-ai/glm-5.3-flash)`, reason: "Three short, distinct, original taglines grounded in Lagos identity (Lekki, city rhythm) that a design studio could realistically use; all on-topic with no placeholders." The owner then paid 0.05 NEAR to the contributor.
+
+| Step | Signer | Result | Tx |
+| --- | --- | --- | --- |
+| Owner tops up token #2 with `fund()` 0.2 NEAR (so a new 0.05 job clears the reserve) | miqvis111000.testnet | ok | [`3Z2umz…`](https://testnet.nearblocks.io/txns/3Z2umzmNZ2a7VxHbRwKQsQNQQUjnUnoXLNrnWM8L8Gpc) |
+| First attempt: owner posts job 4 "3 taglines for a NEAR AI-scored studio" (0.05 NEAR) | miqvis111000.testnet | ok | [`D2eRMP…`](https://testnet.nearblocks.io/txns/D2eRMPr5b7BjVTRW7kYcEJfsBE69LdZLkkxSVgzffqdW) |
+| First attempt: contributor submits 3 taglines | miqwrk111000.testnet | ok | [`GvAppQ…`](https://testnet.nearblocks.io/txns/GvAppQ4qFSZ8dh28zL2XLZfaKvc4RSvkwbniaXbzCwY5) |
+| First attempt: live `/api/score` — Cloud tried, empty/non-JSON content, built-in fallback recorded (score 80 pass) | miqagt7f109e53.testnet | ok | [`BhHcsj…`](https://testnet.nearblocks.io/txns/BhHcsjgS4LrBxK4LMKjsEm6LF9L2xxJV6C5wAe4cQLGR) |
+| Owner posts job 5 "3 taglines for a Lagos design studio (NEAR AI live check)" (0.05 NEAR) | miqvis111000.testnet | ok | [`9CYEfj…`](https://testnet.nearblocks.io/txns/9CYEfjX8jgF3HGihBHnY1pLb1zZ93JYYTdiKzqHwpHqH) |
+| Contributor submits 3 Lagos taglines | miqwrk111000.testnet | ok | [`3ojddK…`](https://testnet.nearblocks.io/txns/3ojddKPcRWTeNQVC8Z57Abv4yyMfLQn7FbduwR3f9hrM) |
+| Live `/api/score` on token #2 job 5: **NEAR AI Cloud (z-ai/glm-5.3-flash)**, score 90 pass | miqagt7f109e53.testnet | ok | [`7VN7WX…`](https://testnet.nearblocks.io/txns/7VN7WXFJqR5tY9LkmeZqVFvGB4hqUPmgoCW4KYoWHcRh) |
+| Owner approves and pays 0.05 NEAR to miqwrk111000.testnet | miqvis111000.testnet | ok | [`46cpaF…`](https://testnet.nearblocks.io/txns/46cpaFBN7cUfAW21iwLWH59XbftxmaQNsrFFLjm8Lnzf) |

@@ -105,3 +105,11 @@ test("evaluateSubmission uses the built-in scorer when no key is set", async () 
   assert.equal(ev.source, "rule-based");
   assert.equal(ev.passed, true);
 });
+
+test("empty model content falls back to the built-in scorer", withKey(async () => {
+  const ev = await evaluateSubmission(JOB, GOOD, {
+    fetchImpl: async () => jsonRes(200, { choices: [{ finish_reason: "length", message: { content: null, reasoning_content: "thinking..." } }] }),
+  });
+  assert.equal(ev.source, "rule-based-fallback");
+  assert.match(ev.evaluator, /NEAR AI fallback \(empty content\)/);
+}));
