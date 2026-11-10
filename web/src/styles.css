@@ -1,34 +1,34 @@
-/* ── Themes: white (light) and black (dark). Green #94C447 accent in both, black text on green. ── */
+/* ── Themes: milky cream (light) and black (dark). Green #94C447 accent in both, black text on green. ── */
 :root, html[data-theme="light"] {
-  --bg: #ffffff;
-  --surface: #fafafa;
-  --surface-2: #f3f3f3;
+  --bg: #f5f3ef;
+  --surface: #fbfaf7;
+  --surface-2: #efece5;
   --text: #0b0b0b;
-  --muted: #555555;
-  --line: #e5e5e5;
-  --line-2: #d4d4d4;
-  --chrome-bg: #ffffff;
+  --muted: #57534b;
+  --line: #e7e2d8;
+  --line-2: #d8d1c3;
+  --chrome-bg: rgba(245,243,239,.88);
   --chrome-text: #0b0b0b;
-  --chrome-muted: #555555;
-  --chrome-line: #e5e5e5;
+  --chrome-muted: #57534b;
+  --chrome-line: #e7e2d8;
   --chrome-hover: rgba(11,11,11,.06);
-  --hero-bg: #ffffff;
-  --footer-bg: #f5f5f5;
+  --hero-bg: #f5f3ef;
+  --footer-bg: #efece5;
   --accent: #94c447;
   --accent-hover: #a3d156;
   --accent-text: #3d5a12;     /* green used as text on the page bg (AA on white) */
   --on-accent: #0b0b0b;
   --edge: #0b0b0b;            /* primary button border + offset shadow */
   --inverse-bg: #0b0b0b;
-  --inverse-text: #ffffff;
+  --inverse-text: #f5f3ef;
   --inverse-hover: #262626;
   --focus: #0b0b0b;
-  --input-bg: #ffffff;
+  --input-bg: #fbfaf7;
   --ok-bg: #e9f4d6; --ok-line: #b9d98a; --ok-text: #3d5a12;
   --err-bg: #fde4e1; --err-line: #f5b5ad; --err-text: #b42318;
   --warn-bg: #fcefd3; --warn-line: #efcf8a; --warn-text: #7a4f00;
-  --skel-1: #ececec; --skel-2: #f7f7f7;
-  --shadow: 0 14px 34px rgba(11, 11, 11, 0.1);
+  --skel-1: #e9e5dc; --skel-2: #f3f0ea;
+  --shadow: 0 14px 34px rgba(60, 48, 24, 0.10);
   --ghost-num: rgba(11,11,11,.07);
   --ink: #0b0b0b;
   --green: #94c447; --green-2: #84b33a; --green-ink: var(--accent-text); --red: var(--err-text);
@@ -517,3 +517,9 @@ html[data-theme="dark"] .hero h1 em { background-image: url("data:image/svg+xml;
   .hero-badge-row .eyebrow { font-size: 0.8rem; padding: 6px 16px; letter-spacing: .045em; }
 }
 @media (max-width: 900px) { .hero-grid > .hero-copy { justify-self: stretch; width: 100%; } }
+
+/* ── milky light theme: frosted cream nav, no stark white anywhere ── */
+html[data-theme="light"] .nav { -webkit-backdrop-filter: saturate(140%) blur(10px); backdrop-filter: saturate(140%) blur(10px); }
+html[data-theme="light"] .hero-glow { background: radial-gradient(560px 320px at 85% 30%, rgba(148,196,71,.20), transparent 60%), radial-gradient(520px 300px at 10% 0%, rgba(255,253,249,.7), transparent 60%); }
+html[data-theme="light"] .nav-links.open { background: #f5f3ef; }
+html[data-theme="light"] .toast { background: var(--surface); }

@@ -215,7 +215,7 @@ function ThemeToggle() {
   function toggle() {
     document.documentElement.dataset.theme = next;
     try { localStorage.setItem("mintiq-theme", next); } catch {}
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0A0A0A" : "#FFFFFF");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0A0A0A" : "#F5F3EF");
     window.dispatchEvent(new Event("mintiq-theme"));
   }
   return (
