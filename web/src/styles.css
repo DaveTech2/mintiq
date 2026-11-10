@@ -633,3 +633,24 @@ html[data-theme="light"] .toast { background: var(--surface); }
   .stat-grid .stat-value { font-size: 1.15rem; }
   .stat-grid .stat-sub { font-size: 0.72rem; }
 }
+
+/* ── Mobile fit: grid columns may shrink below their content ── */
+html, body { overflow-x: clip; }
+.live-grid { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.hero-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.9fr); }
+.mint-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr); }
+.owner-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 960px) { .dash-top { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 900px) { .live-grid, .hero-grid, .mint-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 860px) { .owner-grid { grid-template-columns: minmax(0, 1fr); } }
+.card, .live-grid > *, .dash-top > * { min-width: 0; }
+.feed-item { grid-template-columns: 28px minmax(0, 1fr) auto; }
+.feed-body { min-width: 0; }
+.feed-text .badge { white-space: normal; max-width: 100%; overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .feed-item { grid-template-columns: 28px minmax(0, 1fr); padding: 10px 4px; }
+  .feed-meta { grid-column: 2; margin-top: 2px; }
+  .card.activity, .card.moments { padding-left: 14px; padding-right: 14px; }
+}
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+.card { max-width: 100%; }
