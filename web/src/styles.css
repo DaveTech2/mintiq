@@ -654,3 +654,19 @@ html, body { overflow-x: clip; }
 }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .card { max-width: 100%; }
+
+/* ── iOS Safari: nothing may extend past the screen, even when visually clipped ──
+   Safari sizes the page to the widest descendant and then zooms out, which
+   left a dark strip on the right and shifted everything left. */
+.hero-glow { left: 0; right: 0; }
+.hero, .nft-art, .logo-shine { contain: paint; }
+.nft-art svg { overflow: hidden; }
+#root, main { overflow-x: clip; max-width: 100vw; }
+/* Hero pill: never wider than the screen */
+.hero-badge-row { max-width: 100%; flex-wrap: wrap; justify-content: center; }
+.hero-badge-row .eyebrow { white-space: normal; max-width: 100%; text-align: center; }
+@media (max-width: 480px) {
+  .hero-badge-row .logo-anim { display: none !important; }
+  .hero-badge-row .eyebrow { font-size: 0.68rem; letter-spacing: .03em; }
+}
+@media (max-width: 900px) { .hero-badge-row { width: 100%; justify-content: center !important; margin-left: auto; margin-right: auto; } }
