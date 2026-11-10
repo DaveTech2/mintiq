@@ -1,0 +1,36 @@
+{
+  "name": "mintiq",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:wasm": "bash scripts/build-wasm.sh",
+    "test:contract": "bash -lc 'source /home/box/.cargo/env; cargo test --workspace --lib'",
+    "demo": "node scripts/demo.mjs",
+    "start": "node app/src/server.js",
+    "dev:web": "vite --config web/vite.config.js",
+    "build:web": "vite build --config web/vite.config.js",
+    "postinstall": "bash scripts/ensure-sandbox.sh || true",
+    "test:scorer": "node --test app/src/scorer.test.js app/src/evaluator.test.js"
+  },
+  "dependencies": {
+    "@near-wallet-selector/core": "^10.1.4",
+    "@near-wallet-selector/here-wallet": "^10.1.4",
+    "@near-wallet-selector/intear-wallet": "^10.1.4",
+    "@near-wallet-selector/meteor-wallet": "^10.1.4",
+    "@near-wallet-selector/modal-ui": "^10.1.4",
+    "@near-wallet-selector/my-near-wallet": "^10.1.4",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "near-api-js": "^5.1.1",
+    "near-js-tx2": "npm:@near-js/transactions@^2.5.1",
+    "near-sandbox": "^0.3.5",
+    "near-workspaces": "^5.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "vite": "^6.3.5"
+  }
+}

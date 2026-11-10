@@ -1,0 +1,313 @@
+{
+  "networkId": "testnet",
+  "rpc": "https://test.rpc.fastnear.com",
+  "explorerTx": "https://testnet.nearblocks.io/txns/",
+  "explorerTxAlt": "https://explorer.testnet.near.org/transactions/",
+  "explorerAccount": "https://testnet.nearblocks.io/address/",
+  "contracts": {
+    "mintiq": "mintiq7f109e53.testnet",
+    "yieldPool": "yld.mintiq7f109e53.testnet"
+  },
+  "accounts": {
+    "owner": "own.mintiq7f109e53.testnet",
+    "agent": "miqagt7f109e53.testnet",
+    "contributor": "wrk.mintiq7f109e53.testnet"
+  },
+  "accountExplorer": {
+    "mintiq": "https://testnet.nearblocks.io/address/mintiq7f109e53.testnet",
+    "yieldPool": "https://testnet.nearblocks.io/address/yld.mintiq7f109e53.testnet",
+    "owner": "https://testnet.nearblocks.io/address/own.mintiq7f109e53.testnet",
+    "agent": "https://testnet.nearblocks.io/address/miqagt7f109e53.testnet",
+    "contributor": "https://testnet.nearblocks.io/address/wrk.mintiq7f109e53.testnet"
+  },
+  "demoTokenId": "1",
+  "usdPerNear": 2,
+  "rateLabel": "Fixed demo rate (not a live price): $2.00 per NEAR",
+  "evaluator": "Built-in rule-based scorer (no LLM)",
+  "evaluations": {
+    "good": {
+      "score": 95,
+      "passed": true,
+      "label": "Built-in rule-based scorer (no LLM)",
+      "reasoning": "Parsed brief as 5 meme ideas. Found 5 distinct caption/punchline ideas that fit the topic. Pass (score 95 \u2265 70)."
+    },
+    "offTopic": {
+      "score": 0,
+      "passed": false,
+      "label": "Built-in rule-based scorer (no LLM)",
+      "reasoning": "Parsed brief as 5 meme ideas. Found only 0 distinct meme ideas (5 required items missing). 1 item is too short to count. \"meme\" appears as a negation or meta-text, not as delivered work. Submission contains off-topic content (for example a recipe or unrelated notes). Fail (score 0 < 70)."
+    }
+  },
+  "trackRecord": {
+    "jobs_completed": 1,
+    "contributors_hired": 1,
+    "total_spent": "$5.00",
+    "total_earned": "$3.75",
+    "liquid": "$22.63",
+    "invested": "$75.00"
+  },
+  "transactions": [
+    {
+      "label": "Top up parent from miqfuel57f109e53.testnet (9.8000 NEAR)",
+      "ok": true,
+      "hash": "CjmDZdgfNkAVVZ1HtcNQf2DB5eoijL7ydsiXRk9ZRJ3N",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/CjmDZdgfNkAVVZ1HtcNQf2DB5eoijL7ydsiXRk9ZRJ3N",
+        "explorer": "https://explorer.testnet.near.org/transactions/CjmDZdgfNkAVVZ1HtcNQf2DB5eoijL7ydsiXRk9ZRJ3N"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Top up parent from miqfuel67f109e53.testnet (9.8000 NEAR)",
+      "ok": true,
+      "hash": "9STAVKqZwRPScuNxEVG2cPUksbqdX6GmkfgdVs9yvGxS",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/9STAVKqZwRPScuNxEVG2cPUksbqdX6GmkfgdVs9yvGxS",
+        "explorer": "https://explorer.testnet.near.org/transactions/9STAVKqZwRPScuNxEVG2cPUksbqdX6GmkfgdVs9yvGxS"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Top up parent from miqfuel77f109e53.testnet (9.8000 NEAR)",
+      "ok": true,
+      "hash": "9iDgwdyh5hSFX4284tWz8vqcJkNn3ZkTMv9pJW5GWNEx",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/9iDgwdyh5hSFX4284tWz8vqcJkNn3ZkTMv9pJW5GWNEx",
+        "explorer": "https://explorer.testnet.near.org/transactions/9iDgwdyh5hSFX4284tWz8vqcJkNn3ZkTMv9pJW5GWNEx"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Create yield subaccount yld.mintiq7f109e53.testnet",
+      "ok": true,
+      "hash": "4ukLFwJ5WBp6fEENJde9fNwMm5F1ryhPkYUmTDugjrKw",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/4ukLFwJ5WBp6fEENJde9fNwMm5F1ryhPkYUmTDugjrKw",
+        "explorer": "https://explorer.testnet.near.org/transactions/4ukLFwJ5WBp6fEENJde9fNwMm5F1ryhPkYUmTDugjrKw"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Create owner subaccount own.mintiq7f109e53.testnet",
+      "ok": true,
+      "hash": "DG1FviVu3UkpDTUuoiCFnSQ2H9VWqyUHtvoAa3RHtH2Q",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/DG1FviVu3UkpDTUuoiCFnSQ2H9VWqyUHtvoAa3RHtH2Q",
+        "explorer": "https://explorer.testnet.near.org/transactions/DG1FviVu3UkpDTUuoiCFnSQ2H9VWqyUHtvoAa3RHtH2Q"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Create contributor subaccount wrk.mintiq7f109e53.testnet",
+      "ok": true,
+      "hash": "6Kx4gFD8Qzj6K1S7vJFattpVkDoqrJiceZUdXeCwHhoj",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/6Kx4gFD8Qzj6K1S7vJFattpVkDoqrJiceZUdXeCwHhoj",
+        "explorer": "https://explorer.testnet.near.org/transactions/6Kx4gFD8Qzj6K1S7vJFattpVkDoqrJiceZUdXeCwHhoj"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Deploy yield pool wasm",
+      "ok": true,
+      "hash": "GAJ8yzTaoEMdERUAGC9tYZMHwWwumh1EvuhqX35DhUB5",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/GAJ8yzTaoEMdERUAGC9tYZMHwWwumh1EvuhqX35DhUB5",
+        "explorer": "https://explorer.testnet.near.org/transactions/GAJ8yzTaoEMdERUAGC9tYZMHwWwumh1EvuhqX35DhUB5"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Init yield pool (new)",
+      "ok": true,
+      "hash": "Ca2krSApZfXtzmSgomSQNbgtq9ybw8ZhztPLL28ztNHJ",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/Ca2krSApZfXtzmSgomSQNbgtq9ybw8ZhztPLL28ztNHJ",
+        "explorer": "https://explorer.testnet.near.org/transactions/Ca2krSApZfXtzmSgomSQNbgtq9ybw8ZhztPLL28ztNHJ"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Deploy Mintiq treasury/NFT wasm",
+      "ok": true,
+      "hash": "6tRgSDN2HGiB7xu8EmwJEwvrRGw7Ca1QcPAK7f2fUkHS",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/6tRgSDN2HGiB7xu8EmwJEwvrRGw7Ca1QcPAK7f2fUkHS",
+        "explorer": "https://explorer.testnet.near.org/transactions/6tRgSDN2HGiB7xu8EmwJEwvrRGw7Ca1QcPAK7f2fUkHS"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Init Mintiq (new)",
+      "ok": true,
+      "hash": "CsSP8gpMVjDVQTBDjVNDEJUsv4Vut5TtjtbudZJVuxx4",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/CsSP8gpMVjDVQTBDjVNDEJUsv4Vut5TtjtbudZJVuxx4",
+        "explorer": "https://explorer.testnet.near.org/transactions/CsSP8gpMVjDVQTBDjVNDEJUsv4Vut5TtjtbudZJVuxx4"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Add agent function-call key limited to Mintiq agent methods",
+      "ok": true,
+      "hash": "CG8wWdhVhShYgRwMwzUCNrBpaiboG8D8x3Sh793CZqYH",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/CG8wWdhVhShYgRwMwzUCNrBpaiboG8D8x3Sh793CZqYH",
+        "explorer": "https://explorer.testnet.near.org/transactions/CG8wWdhVhShYgRwMwzUCNrBpaiboG8D8x3Sh793CZqYH"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Mint Meme Studio NFT with $100 treasury",
+      "ok": true,
+      "hash": "Cj7jMwHAcF1ETx4vbQG6KrhgFXg3sM7PC5sKzZrqGC6E",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/Cj7jMwHAcF1ETx4vbQG6KrhgFXg3sM7PC5sKzZrqGC6E",
+        "explorer": "https://explorer.testnet.near.org/transactions/Cj7jMwHAcF1ETx4vbQG6KrhgFXg3sM7PC5sKzZrqGC6E"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Agent function-call key cannot transfer NEAR (protocol rejection)",
+      "ok": true,
+      "hash": "4UUdc5bbh3qR3bq6Zze2utqo74je4x8xsYfA5VBdswdD",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/4UUdc5bbh3qR3bq6Zze2utqo74je4x8xsYfA5VBdswdD",
+        "explorer": "https://explorer.testnet.near.org/transactions/4UUdc5bbh3qR3bq6Zze2utqo74je4x8xsYfA5VBdswdD"
+      },
+      "expectedFail": true,
+      "error": "The transaction contains more then one action, but it was signed with an access key which allows transaction to apply only one specific action. To apply more then one actions TX must be signed with a full access key"
+    },
+    {
+      "label": "Agent function-call key cannot call the yield pool",
+      "ok": true,
+      "hash": "2kRzU1R7rj1gyvKg8HsErTXjpAa5dQBZ4SvJpMp8UAtU",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/2kRzU1R7rj1gyvKg8HsErTXjpAa5dQBZ4SvJpMp8UAtU",
+        "explorer": "https://explorer.testnet.near.org/transactions/2kRzU1R7rj1gyvKg8HsErTXjpAa5dQBZ4SvJpMp8UAtU"
+      },
+      "expectedFail": true,
+      "error": "{}"
+    },
+    {
+      "label": "Contract rejects a $6 job (max per task is $5) \u2014 ERR_OVERSPEND",
+      "ok": true,
+      "hash": "2teQzuMFHJDCJgDyFLsGoQJFrkC96E3Mbb4PXdA6H9iy",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/2teQzuMFHJDCJgDyFLsGoQJFrkC96E3Mbb4PXdA6H9iy",
+        "explorer": "https://explorer.testnet.near.org/transactions/2teQzuMFHJDCJgDyFLsGoQJFrkC96E3Mbb4PXdA6H9iy"
+      },
+      "expectedFail": true,
+      "error": "{\"index\":0,\"kind\":{\"index\":0,\"kind\":{\"FunctionCallError\":{\"ExecutionError\":\"Smart contract panicked: ERR_OVERSPEND\"}}}}"
+    },
+    {
+      "label": "Agent posted job \"5 original memes, $5\"",
+      "ok": true,
+      "hash": "3tGbsDAxW135p96cHwmuYbsGsWGCGpehSnC4oEnmbLf2",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/3tGbsDAxW135p96cHwmuYbsGsWGCGpehSnC4oEnmbLf2",
+        "explorer": "https://explorer.testnet.near.org/transactions/3tGbsDAxW135p96cHwmuYbsGsWGCGpehSnC4oEnmbLf2"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Contributor submitted the good meme set",
+      "ok": true,
+      "hash": "GCyQZmrzrmdBfEcKyHoANgCXjfJhm7N9TuyVDuoUpAei",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/GCyQZmrzrmdBfEcKyHoANgCXjfJhm7N9TuyVDuoUpAei",
+        "explorer": "https://explorer.testnet.near.org/transactions/GCyQZmrzrmdBfEcKyHoANgCXjfJhm7N9TuyVDuoUpAei"
+      },
+      "expectedFail": false,
+      "error": null
+    },
+    {
+      "label": "Contributor submitted the off-topic lasagna text",
+      "ok": true,
+      "hash": "F1VjMT6bt4Awf7aa61svyGviEs7Yz4DuFYe4Q9mNmmAw",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/F1VjMT6bt4Awf7aa61svyGviEs7Yz4DuFYe4Q9mNmmAw",
+        "explorer": "https://explorer.testnet.near.org/transactions/F1VjMT6bt4Awf7aa61svyGviEs7Yz4DuFYe4Q9mNmmAw"
+      }
+    },
+    {
+      "label": "Owner approved and paid the good submission",
+      "ok": true,
+      "hash": "HNtmwKDMSmDLEozXDNTyx7winkyJKMZWDkMAoT36mN4C",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/HNtmwKDMSmDLEozXDNTyx7winkyJKMZWDkMAoT36mN4C",
+        "explorer": "https://explorer.testnet.near.org/transactions/HNtmwKDMSmDLEozXDNTyx7winkyJKMZWDkMAoT36mN4C"
+      }
+    },
+    {
+      "label": "Accrue 5% demo yield (labelled, not real staking)",
+      "ok": true,
+      "hash": "CNAw7cxJ8UVuurtHKhj6bpev1DK3Ku8fU5BhdBcD4A1B",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/CNAw7cxJ8UVuurtHKhj6bpev1DK3Ku8fU5BhdBcD4A1B",
+        "explorer": "https://explorer.testnet.near.org/transactions/CNAw7cxJ8UVuurtHKhj6bpev1DK3Ku8fU5BhdBcD4A1B"
+      }
+    },
+    {
+      "label": "Harvest demo yield back to the treasury",
+      "ok": true,
+      "hash": "5AN8EgEz89zDjCZSmdQieeDHGMhg7sPghgC5HLmCQj9a",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/5AN8EgEz89zDjCZSmdQieeDHGMhg7sPghgC5HLmCQj9a",
+        "explorer": "https://explorer.testnet.near.org/transactions/5AN8EgEz89zDjCZSmdQieeDHGMhg7sPghgC5HLmCQj9a"
+      }
+    },
+    {
+      "label": "Agent recorded score for submission 1",
+      "ok": true,
+      "hash": "DgYtpHbrtq5c569pnwVbJQ4m9TjwgjqJYMx8RWhwvnVz",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/DgYtpHbrtq5c569pnwVbJQ4m9TjwgjqJYMx8RWhwvnVz",
+        "explorer": "https://explorer.testnet.near.org/transactions/DgYtpHbrtq5c569pnwVbJQ4m9TjwgjqJYMx8RWhwvnVz"
+      }
+    },
+    {
+      "label": "Agent recorded score for submission 2",
+      "ok": true,
+      "hash": "HTQca4fZFFYHggcbLWxbL7bCA6sBv1xbnHkUi9QWybdv",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/HTQca4fZFFYHggcbLWxbL7bCA6sBv1xbnHkUi9QWybdv",
+        "explorer": "https://explorer.testnet.near.org/transactions/HTQca4fZFFYHggcbLWxbL7bCA6sBv1xbnHkUi9QWybdv"
+      }
+    },
+    {
+      "label": "Invest idle $75.00 in demo yield pool",
+      "ok": true,
+      "hash": "DCayzHcGZb3NVxmvABmJcKBTdmKXauXmuSSta6VerjsR",
+      "explorer": {
+        "nearblocks": "https://testnet.nearblocks.io/txns/DCayzHcGZb3NVxmvABmJcKBTdmKXauXmuSSta6VerjsR",
+        "explorer": "https://explorer.testnet.near.org/transactions/DCayzHcGZb3NVxmvABmJcKBTdmKXauXmuSSta6VerjsR"
+      }
+    }
+  ],
+  "visitorCapabilities": {
+    "publicCan": [
+      "View live contract state (NFT, treasury, jobs, scores, track record) via testnet RPC",
+      "Follow explorer links for every recorded transaction"
+    ],
+    "publicCannot": [
+      "Mint, post, submit, score, approve, pay, invest, or harvest from the public dashboard (no keys in the browser)",
+      "Use a live Agent Market job (still a local simulation only; the market has no testnet)"
+    ]
+  },
+  "writtenAt": "2026-11-10T08:24:08.757Z",
+  "rpcNote": "Uses https://test.rpc.fastnear.com because rpc.testnet.near.org returned HTTP -429 / deprecated mid-demo."
+}

@@ -1,0 +1,477 @@
+import { useEffect, useState } from "react";
+import { formatUsd, formatNear, yoctoToUsd } from "./money.js";
+import deployed from "./deployed.json";
+import { buildTestnetApi } from "./rpc.js";
+
+const TESTNET = deployed?.networkId === "testnet";
+const testnetApi = TESTNET ? buildTestnetApi(deployed) : null;
+
+async function localApi(path, opts) {
+  const res = await fetch(path, {
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+    body: opts?.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+async function api(path, opts) {
+  if (TESTNET) return testnetApi(path, opts);
+  return localApi(path, opts);
+}
+
+const DEFAULT_MINT = {
+  name: "Meme Studio",
+  mission: "build a meme production business",
+  treasuryUsd: 100,
+  maxPerTaskUsd: 5,
+  minReserveUsd: 20,
+  reinvestBps: 70,
+  ownerShareBps: 30,
+};
+
+export default function App() {
+  const [status, setStatus] = useState(null);
+  const [nfts, setNfts] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [detail, setDetail] = useState(null);
+  const [market, setMarket] = useState(null);
+  const [tab, setTab] = useState("dashboard");
+  const [mint, setMint] = useState(DEFAULT_MINT);
+  const [job, setJob] = useState({
+    title: "5 original memes, $5",
+    description: "Deliver 5 original meme concepts for the studio. Budget $5.",
+    budgetUsd: 5,
+  });
+  const [submission, setSubmission] = useState("");
+  const [flash, setFlash] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  async function refresh(id = selected) {
+    const s = await api("/api/status");
+    setStatus(s);
+    const list = await api("/api/nfts");
+    setNfts(list.nfts || []);
+    const nextId = id || list.nfts?.[0]?.token_id;
+    if (nextId) {
+      setSelected(nextId);
+      const d = await api(`/api/nfts/${nextId}`);
+      setDetail(d);
+    }
+    setMarket(await api("/api/market"));
+  }
+
+  useEffect(() => {
+    refresh().catch((err) => setFlash({ type: "err", text: err.message }));
+  }, []);
+
+  async function run(fn) {
+    setBusy(true);
+    setFlash(null);
+    try {
+      await fn();
+      await refresh(selected);
+    } catch (err) {
+      setFlash({ type: "err", text: err.message });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const nft = detail?.nft;
+
+  return (
+    <div className="page">
+      <header className="top">
+        <div>
+          <p className="eyebrow">Mintiq</p>
+          <h1>NFTs that earn, invest, hire, and pay on their own.</h1>
+        </div>
+        <nav>
+          <button className={tab === "dashboard" ? "on" : ""} onClick={() => setTab("dashboard")}>
+            Dashboard
+          </button>
+          <button className={tab === "mint" ? "on" : ""} onClick={() => setTab("mint")}>
+            Mint
+          </button>
+        </nav>
+      </header>
+
+      {status && (
+        <p className="banner">
+          {status.mode === "sandbox" ? "Local NEAR sandbox" : status.networkId === "testnet" ? "NEAR testnet (live contract state)" : status.networkId} · {status.rateLabel} · Agent key:{" "}
+          {status.accounts.agentKeyType || "unknown"}
+          {status.market?.liveUsed ? " · live Agent Market" : " · Agent Market simulation (no testnet on market.near.ai)"}
+          {" · Evaluator: "}
+          {status.agent?.evaluatorLabel || status.agent?.evaluator || "unknown"}
+          {status.readOnly ? " · Public dashboard is read-only" : ""}
+        </p>
+      )}
+
+      {flash && <p className={`flash ${flash.type}`}>{flash.text}</p>}
+
+      {TESTNET && status && (
+        <section className="card">
+          <h2>Live on NEAR testnet</h2>
+          <p className="muted">
+            This page reads the deployed contracts over public RPC. You can inspect the demo NFT, treasury, jobs, scores, and
+            track record, and open every recorded transaction in the explorer. You cannot mint, post, submit, score, approve,
+            pay, invest, or harvest from this site — those writes were already run in the scripted testnet demo, and no
+            private keys are in the browser.
+          </p>
+          <p className="hint">
+            Treasury contract{" "}
+            <a href={deployed.accountExplorer?.mintiq} target="_blank" rel="noreferrer">
+              {deployed.contracts?.mintiq}
+            </a>
+            {" · "}Yield pool{" "}
+            <a href={deployed.accountExplorer?.yieldPool} target="_blank" rel="noreferrer">
+              {deployed.contracts?.yieldPool}
+            </a>
+          </p>
+        </section>
+      )}
+
+      {tab === "mint" && TESTNET && (
+        <section className="card">
+          <h2>Minting is not available here</h2>
+          <p className="muted">
+            A public visitor cannot mint from this dashboard. The demo NFT was minted on testnet with the owner account
+            during the scripted deploy. Connect is not wired: a wallet-selector flow for your own testnet account was not
+            shipped in this version.
+          </p>
+        </section>
+      )}
+
+      {tab === "mint" && !TESTNET && (
+        <section className="card form">
+          <h2>Mint a Mintiq</h2>
+          <p className="muted">The attached treasury becomes the NFT's money. Rules are enforced by the contract, not the agent.</p>
+          <label>
+            Name
+            <input value={mint.name} onChange={(e) => setMint({ ...mint, name: e.target.value })} />
+          </label>
+          <label>
+            Mission
+            <textarea value={mint.mission} onChange={(e) => setMint({ ...mint, mission: e.target.value })} />
+          </label>
+          <div className="grid3">
+            <label>
+              Starting treasury
+              <input type="number" value={mint.treasuryUsd} onChange={(e) => setMint({ ...mint, treasuryUsd: +e.target.value })} />
+              <span className="hint">{formatUsd(mint.treasuryUsd)} · {(mint.treasuryUsd / 2).toFixed(2)} NEAR</span>
+            </label>
+            <label>
+              Max per task
+              <input type="number" value={mint.maxPerTaskUsd} onChange={(e) => setMint({ ...mint, maxPerTaskUsd: +e.target.value })} />
+            </label>
+            <label>
+              Minimum reserve
+              <input type="number" value={mint.minReserveUsd} onChange={(e) => setMint({ ...mint, minReserveUsd: +e.target.value })} />
+            </label>
+          </div>
+          <div className="grid2">
+            <label>
+              Reinvest earnings
+              <input type="number" value={mint.reinvestBps} onChange={(e) => setMint({ ...mint, reinvestBps: +e.target.value })} />
+              <span className="hint">{mint.reinvestBps}% back to the treasury</span>
+            </label>
+            <label>
+              Owner share
+              <input type="number" value={mint.ownerShareBps} onChange={(e) => setMint({ ...mint, ownerShareBps: +e.target.value })} />
+              <span className="hint">{mint.ownerShareBps}% of earnings to the owner</span>
+            </label>
+          </div>
+          <button
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                await api("/api/mint", {
+                  method: "POST",
+                  body: {
+                    ...mint,
+                    reinvestBps: mint.reinvestBps * 100,
+                    ownerShareBps: mint.ownerShareBps * 100,
+                  },
+                });
+                setFlash({ type: "ok", text: "Minted." });
+                setTab("dashboard");
+              })
+            }
+          >
+            Mint with {formatUsd(mint.treasuryUsd)} treasury
+          </button>
+        </section>
+      )}
+
+      {tab === "dashboard" && !nft && (
+        <section className="card">
+          <p>No Mintiq yet. Mint one, or run <code>npm run demo -- --serve</code>.</p>
+          <button onClick={() => setTab("mint")}>Open mint form</button>
+        </section>
+      )}
+
+      {tab === "dashboard" && nft && (
+        <>
+          <section className="hero-card">
+            <div>
+              <p className="eyebrow">Token #{nft.token_id}</p>
+              <h2>{nft.name}</h2>
+              <p className="mission">{nft.mission}</p>
+            </div>
+            <div className="select">
+              <label>
+                NFT
+                <select
+                  value={selected}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setSelected(id);
+                    api(`/api/nfts/${id}`).then(setDetail);
+                  }}
+                >
+                  {nfts.map((n) => (
+                    <option key={n.token_id} value={n.token_id}>
+                      #{n.token_id} {n.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section className="stats">
+            <Stat label="Liquid treasury" value={formatUsd(yoctoToUsd(nft.liquid))} sub={formatNear(nft.liquid)} />
+            <Stat label="Invested" value={formatUsd(yoctoToUsd(nft.invested))} sub="Demo yield pool, not real staking" />
+            <Stat label="Reserve floor" value={formatUsd(yoctoToUsd(nft.rules.min_reserve))} sub={`Max per task ${formatUsd(yoctoToUsd(nft.rules.max_per_task))}`} />
+            <Stat
+              label="Idle above reserve"
+              value={formatUsd(Math.max(0, yoctoToUsd(nft.liquid) - yoctoToUsd(nft.rules.min_reserve)))}
+              sub="Available to invest"
+            />
+          </section>
+
+          <section className="card track">
+            <h3>Track record</h3>
+            <div className="stats compact">
+              <Stat label="Jobs completed" value={nft.track_record.jobs_completed} />
+              <Stat label="Contributors hired" value={nft.track_record.contributors_hired} />
+              <Stat label="Total spent" value={formatUsd(yoctoToUsd(nft.track_record.total_spent))} />
+              <Stat label="Total earned" value={formatUsd(yoctoToUsd(nft.track_record.total_earned))} />
+            </div>
+          </section>
+
+          {TESTNET && (
+            <section className="card">
+              <h3>Demo transactions</h3>
+              <p className="muted">Every write below already ran on testnet. Open a hash to inspect it.</p>
+              <ul className="tx-list">
+                {(status?.transactions || deployed.transactions || []).map((t) => (
+                  <li key={`${t.label}-${t.hash || "none"}`}>
+                    <span className={t.ok ? "ok" : "err"}>{t.ok ? "PASS" : "FAIL"}</span> {t.label}
+                    {t.hash ? (
+                      <>
+                        {" · "}
+                        <a href={t.explorer?.nearblocks || `${deployed.explorerTx}${t.hash}`} target="_blank" rel="noreferrer">
+                          {t.hash.slice(0, 10)}…{t.hash.slice(-6)}
+                        </a>
+                      </>
+                    ) : (
+                      <span className="muted"> · no tx hash (rejected before broadcast)</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {!TESTNET && <section className="split">
+            <div className="card">
+              <h3>Post a job</h3>
+              <label>
+                Title
+                <input value={job.title} onChange={(e) => setJob({ ...job, title: e.target.value })} />
+              </label>
+              <label>
+                Brief
+                <textarea value={job.description} onChange={(e) => setJob({ ...job, description: e.target.value })} />
+              </label>
+              <label>
+                Budget (USD)
+                <input type="number" value={job.budgetUsd} onChange={(e) => setJob({ ...job, budgetUsd: +e.target.value })} />
+              </label>
+              <button
+                disabled={busy}
+                onClick={() =>
+                  run(async () => {
+                    await api("/api/jobs", { method: "POST", body: { tokenId: nft.token_id, ...job } });
+                    setFlash({ type: "ok", text: "Job posted on-chain by the agent account." });
+                  })
+                }
+              >
+                Post job (agent)
+              </button>
+              <p className="hint">A budget above the max per task is rejected by the contract.</p>
+            </div>
+
+            <div className="card">
+              <h3>Invest & harvest</h3>
+              <p className="muted">Idle funds above the reserve can go only to the approved demo yield pool.</p>
+              <div className="row">
+                <button disabled={busy} onClick={() => run(() => api("/api/invest", { method: "POST", body: { tokenId: nft.token_id } }))}>
+                  Invest idle funds
+                </button>
+                <button
+                  disabled={busy}
+                  className="ghost"
+                  onClick={() => run(() => api("/api/harvest", { method: "POST", body: { tokenId: nft.token_id, accrueBps: 500 } }))}
+                >
+                  Accrue 5% demo yield & harvest
+                </button>
+              </div>
+            </div>
+          </section>}
+
+          <section className="card">
+            <h3>Jobs board</h3>
+            {TESTNET && <p className="muted">Scores below were recorded on-chain by the built-in rule-based scorer. Evaluate, submit, and pay buttons are hidden on this public page.</p>}
+            {(nft.jobs || []).length === 0 && <p className="muted">No jobs yet.</p>}
+            {(nft.jobs || []).map((j) => (
+              <article className="job" key={j.id}>
+                <header>
+                  <strong>{j.title}</strong>
+                  <span className="pill">{j.status}</span>
+                  <span className="muted">{formatUsd(yoctoToUsd(j.budget))}</span>
+                </header>
+                <p>{j.description}</p>
+                {(j.submissions || []).map((s) => (
+                  <div className="sub" key={s.id}>
+                    <p className="muted">
+                      Submission #{s.id} from {s.contributor}
+                      {s.paid ? " · paid" : ""}
+                    </p>
+                    <pre>{s.content}</pre>
+                    {s.evaluation ? (
+                      <p>
+                        Scored by <strong>{s.evaluation.evaluator}</strong>
+                        <br />
+                        Score <strong>{s.evaluation.score}</strong> · {s.evaluation.recommend_approve ? "pass (recommends approval)" : "fail (does not recommend)"}
+                        <br />
+                        <span className="muted">{s.evaluation.reasoning}</span>
+                      </p>
+                    ) : TESTNET ? (
+                      <p className="muted">Not yet scored on-chain.</p>
+                    ) : (
+                      <button
+                        disabled={busy}
+                        className="ghost"
+                        onClick={() =>
+                          run(async () => {
+                            const ev = await api("/api/jobs/evaluate", {
+                              method: "POST",
+                              body: { tokenId: nft.token_id, jobId: j.id, submissionId: s.id },
+                            });
+                            setFlash({ type: "ok", text: `Scored ${ev.evaluation.score} with ${ev.evaluation.label}` });
+                          })
+                        }
+                      >
+                        Evaluate (agent)
+                      </button>
+                    )}
+                    {!TESTNET && j.status === "Open" && s.evaluation && !s.paid && (
+                      <button
+                        disabled={busy}
+                        onClick={() =>
+                          run(() =>
+                            api("/api/jobs/approve", {
+                              method: "POST",
+                              body: { tokenId: nft.token_id, jobId: j.id, submissionId: s.id },
+                            })
+                          )
+                        }
+                      >
+                        Approve & pay (owner)
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {!TESTNET && j.status === "Open" && (
+                  <div className="sub">
+                    <label>
+                      Submit work as the contributor
+                      <textarea value={submission} onChange={(e) => setSubmission(e.target.value)} placeholder="Paste the deliverable…" />
+                    </label>
+                    <button
+                      disabled={busy || !submission.trim()}
+                      className="ghost"
+                      onClick={() =>
+                        run(async () => {
+                          await api("/api/jobs/submit", {
+                            method: "POST",
+                            body: { tokenId: nft.token_id, jobId: j.id, content: submission },
+                          });
+                          setSubmission("");
+                        })
+                      }
+                    >
+                      Submit
+                    </button>
+                  </div>
+                )}
+              </article>
+            ))}
+          </section>
+
+          <section className="card">
+            <h3>Agent Market</h3>
+            <p className="muted">
+              {TESTNET
+                ? "The Agent Market hire loop is not on NEAR testnet. The live market has no documented testnet, so that part of the demo stayed a labelled local simulation and was not posted to market.near.ai."
+                : "This board is a simulation of the documented market.near.ai lifecycle. The live market has no documented testnet; a real job would spend USD or USDC from a buyer balance. Posting is free; escrow is held at award; acceptance pays the agent owner minus a 5% fee."}
+            </p>
+            {!TESTNET && market && (
+              <p className="hint">
+                Simulated buyer USDC {formatUsd(market.buyerBalanceUsdc)} · owner USDC {formatUsd(market.ownerBalanceUsdc)}
+              </p>
+            )}
+            {!TESTNET && (market?.jobs || []).map((mj) => (
+              <article className="job" key={mj.id}>
+                <header>
+                  <strong>{mj.title}</strong>
+                  <span className="pill">{mj.status}</span>
+                  <span className="muted">{formatUsd(mj.budgetUsd)} {mj.currency}</span>
+                </header>
+                {mj.escrowHeld && (
+                  <p>
+                    Escrow {mj.escrowHeld.status}: {formatUsd(mj.escrowHeld.amountUsd)} funded by {mj.escrowHeld.fundedBy}
+                  </p>
+                )}
+                {mj.payout && (
+                  <p>
+                    Paid {formatUsd(mj.payout.ownerUsd)} to {mj.payout.to}; platform fee {formatUsd(mj.payout.platformFeeUsd)}.
+                  </p>
+                )}
+              </article>
+            ))}
+          </section>
+        </>
+      )}
+
+      <footer>
+        <p>Mintiq · rules live in the NEAR contract · {status?.rateLabel}</p>
+      </footer>
+    </div>
+  );
+}
+
+function Stat({ label, value, sub }) {
+  return (
+    <div className="stat">
+      <p className="label">{label}</p>
+      <p className="value">{value}</p>
+      {sub && <p className="sub">{sub}</p>}
+    </div>
+  );
+}

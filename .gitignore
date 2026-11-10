@@ -1,0 +1,16 @@
+target/
+node_modules/
+dist/
+.mintiq/*
+!.mintiq/.gitkeep
+.env
+.env.local
+*.pem
+*.json.key
+keys/
+.DS_Store
+web/dist
+app/dist
+*.log
+web/.deploy
+.vercel
