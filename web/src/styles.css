@@ -492,7 +492,6 @@ input[type="range"] { border-radius: var(--r-pill); height: 6px; }
   .cta-row { justify-content: center; }
   .hero-card { width: 100%; margin: 0 auto; box-shadow: 6px 6px 0 var(--accent); }
 }
-@media (max-width: 420px) { .hero .container { padding-left: 18px; padding-right: 18px; } }
 
 /* ── "gets work done": curvy brush swoosh (replaces flat marker bar) ── */
 .hero h1 em, html[data-theme="light"] .hero h1 em, html[data-theme="dark"] .hero h1 em {
@@ -507,3 +506,14 @@ html[data-theme="dark"] .hero h1 em { color: var(--accent-text); background-size
 html[data-theme="dark"] .hero h1 em { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 30' preserveAspectRatio='none'><path d='M6 20 C 70 9, 160 6, 294 12' fill='none' stroke='%2394C447' stroke-width='8' stroke-linecap='round'/><path d='M22 25 C 100 17, 190 15, 270 19' fill='none' stroke='%2394C447' stroke-width='4' stroke-linecap='round' opacity='.55'/></svg>"); }
 @keyframes swoosh-draw { from { background-size: 0% .42em; } }
 @media (prefers-reduced-motion: reduce) { .hero h1 em { animation: none !important; } }
+
+/* ── hero M lines up with the nav M (same container edge, same size); wider pill ── */
+.hero-badge-row { justify-content: flex-start !important; gap: 12px; }
+.hero-badge-row .logo-anim { width: 28px !important; height: 28px !important; }
+.hero-badge-row .eyebrow { font-size: 0.86rem; padding: 7px 18px; letter-spacing: .06em; }
+@media (max-width: 900px) { .hero-copy { max-width: none; } .hero-copy > :not(.hero-badge-row) { max-width: 34rem; margin-left: auto; margin-right: auto; } }
+@media (max-width: 520px) {
+  .hero-badge-row { gap: 10px; }
+  .hero-badge-row .eyebrow { font-size: 0.8rem; padding: 6px 16px; letter-spacing: .045em; }
+}
+@media (max-width: 900px) { .hero-grid > .hero-copy { justify-self: stretch; width: 100%; } }
