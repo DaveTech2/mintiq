@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Wallet, Sparkles, LayoutDashboard, Menu, X, ShieldCheck, Coins, Bot, TrendingUp, ArrowRight, ExternalLink,
-  Briefcase, Send, Gauge, CheckCircle2, CircleDashed, PiggyBank, Sprout, LogOut, Users, FlaskConical, Lock,
+  Briefcase, Send, Gauge, CheckCircle2, CircleDashed, PiggyBank, Sprout, LogOut, Users, FlaskConical, Lock, Sun, Moon,
 } from "lucide-react";
 import { formatNear } from "./money.js";
 import deployed from "./deployed.json";
@@ -125,7 +125,10 @@ function App() {
     <>
       <a className="skip" href="#main">Skip to content</a>
       <div className="testnet-bar" role="note">
-        <FlaskConical size={14} aria-hidden="true" /> Free on NEAR testnet · no real money · <a href={FAUCET} target="_blank" rel="noreferrer">get free test NEAR</a> · yield is a labelled demo
+        <FlaskConical size={13} aria-hidden="true" />
+        <span className="tb-long">Free on NEAR testnet · no real money · </span>
+        <span className="tb-short">Free on testnet · </span>
+        <a href={FAUCET} target="_blank" rel="noreferrer"><span className="tb-long">Get free test NEAR</span><span className="tb-short">Get test NEAR</span></a>
       </div>
       <header className="nav">
         <div className="container nav-inner">
@@ -136,9 +139,11 @@ function App() {
             <Link to="/" go={go} aria-current={route.page === "home" ? "page" : undefined}>Overview</Link>
             <Link to="/mint" go={go} aria-current={route.page === "mint" ? "page" : undefined}>Mint</Link>
             <Link to="/app" go={go} aria-current={route.page === "app" ? "page" : undefined}>Dashboard</Link>
+            <div className="theme-row"><span>Theme</span><ThemeToggle /></div>
             <WalletButton {...ctx} className="nav-wallet-mobile" />
           </nav>
           <div className="nav-right">
+            <ThemeToggle />
             <WalletButton {...ctx} className="nav-wallet-desktop" />
             <button className="icon-btn menu-btn" aria-label={menuOpen ? "Close menu" : "Open menu"} aria-expanded={menuOpen} onClick={() => setMenuOpen((o) => !o)}>
               {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -185,6 +190,41 @@ function App() {
   );
 }
 
+// ── Theme (white / black). index.html sets data-theme before React renders. ─────
+function currentTheme() {
+  return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+}
+function ThemeToggle() {
+  const [theme, setTheme] = useState(currentTheme);
+  useEffect(() => {
+    // follow the system setting until the user picks a theme
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const onChange = (e) => {
+      let saved = null;
+      try { saved = localStorage.getItem("mintiq-theme"); } catch {}
+      if (saved) return;
+      document.documentElement.dataset.theme = e.matches ? "dark" : "light";
+      setTheme(currentTheme());
+    };
+    mq.addEventListener?.("change", onChange);
+    const sync = () => setTheme(currentTheme());
+    window.addEventListener("mintiq-theme", sync);
+    return () => { mq.removeEventListener?.("change", onChange); window.removeEventListener("mintiq-theme", sync); };
+  }, []);
+  const next = theme === "dark" ? "light" : "dark";
+  function toggle() {
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("mintiq-theme", next); } catch {}
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next === "dark" ? "#0A0A0A" : "#FFFFFF");
+    window.dispatchEvent(new Event("mintiq-theme"));
+  }
+  return (
+    <button type="button" className="icon-btn theme-btn" onClick={toggle} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`} aria-pressed={theme === "dark"}>
+      {theme === "dark" ? <Sun size={18} aria-hidden="true" /> : <Moon size={18} aria-hidden="true" />}
+    </button>
+  );
+}
+
 function WalletButton({ account, walletReady, className }) {
   if (account)
     return (
@@ -207,8 +247,7 @@ function Landing({ go, account, walletReady, tokens }) {
         <div className="hero-glow" aria-hidden="true" />
         <div className="container hero-grid">
           <div>
-            <div className="hero-logo"><Logo size={88} /></div>
-            <span className="eyebrow"><Sparkles size={14} aria-hidden="true" /> NEAR · NFTs that do something</span>
+            <div className="hero-badge-row"><Logo size={44} /><span className="eyebrow"><Sparkles size={14} aria-hidden="true" /> NEAR · NFTs that do something</span></div>
             <h1>An NFT with a treasury, a mission, and an agent that <em>gets work done</em>.</h1>
             <p className="lead">
               Mint a Mintiq, fund it, and set the rules. Its agent posts jobs, scores the work, and invests idle funds.
@@ -566,7 +605,7 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
 function DashSkeleton() {
   return (
     <div className="dash-top" aria-busy="true" aria-label="Loading NFT">
-      <div className="card"><Skeleton h={150} r={14} /><div style={{ padding: 18 }}><Skeleton h={24} w="50%" /><Skeleton h={14} style={{ marginTop: 10 }} /><Skeleton h={14} w="70%" style={{ marginTop: 6 }} /></div></div>
+      <div className="card"><Skeleton h={150} r={14} style={{ borderRadius: 20 }} className="skel-block" /><div style={{ padding: 18 }}><Skeleton h={24} w="50%" /><Skeleton h={14} style={{ marginTop: 10 }} /><Skeleton h={14} w="70%" style={{ marginTop: 6 }} /></div></div>
       <div className="stat-grid">{Array.from({ length: 8 }).map((_, i) => <div className="card stat" key={i}><Skeleton h={12} w="50%" /><Skeleton h={26} w="70%" style={{ marginTop: 10 }} /></div>)}</div>
     </div>
   );
