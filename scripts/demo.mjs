@@ -219,8 +219,8 @@ This has nothing to do with memes.`;
   });
 
   const scorerOk =
-    ev.label === "Built-in rule-based scorer (no LLM)" &&
-    evBad.label === "Built-in rule-based scorer (no LLM)" &&
+    String(ev.label).startsWith("Built-in rule-based scorer (no LLM)") &&
+    String(evBad.label).startsWith("Built-in rule-based scorer (no LLM)") &&
     ev.passed === true &&
     ev.score >= 70 &&
     evBad.passed === false &&

@@ -153,11 +153,32 @@ function App() {
         {route.page === "404" && <NotFound go={go} />}
       </main>
       <footer className="footer">
-        <div className="container footer-inner">
-          <div className="brand small"><Logo size={20} /> Mintiq</div>
-          <p>
-            Rules live in the <a href={`${ACCT}${CONTRACT}`} target="_blank" rel="noreferrer">treasury contract</a> on NEAR testnet. Free to try: test NEAR has no cash value and the 5% demo yield is simulated. Scoring: NEAR AI Cloud when available, otherwise the built-in rule-based scorer.
-          </p>
+        <div className="container footer-grid">
+          <div className="footer-brand">
+            <div className="brand small"><Logo size={22} /> Mintiq</div>
+            <p>NFTs with a treasury, a mission and an agent. Rules enforced on NEAR.</p>
+          </div>
+          <nav className="footer-col" aria-label="Product">
+            <h4>Product</h4>
+            <Link to="/mint" go={go}>Mint</Link>
+            <Link to="/app" go={go}>Dashboard</Link>
+            <Link to={`/app/${DEMO}`} go={go}>Demo NFT</Link>
+          </nav>
+          <nav className="footer-col" aria-label="Resources">
+            <h4>Resources</h4>
+            <a href={`${ACCT}${CONTRACT}`} target="_blank" rel="noreferrer">Contract on NearBlocks</a>
+            <a href={FAUCET} target="_blank" rel="noreferrer">Testnet faucet</a>
+            <a href="https://docs.near.org" target="_blank" rel="noreferrer">NEAR docs</a>
+          </nav>
+          <div className="footer-col">
+            <h4>Testnet</h4>
+            <p>Free to try. Test NEAR has no cash value; the 5% yield is a labelled demo.</p>
+            <p>Scoring: NEAR AI Cloud, with a built-in scorer as fallback.</p>
+          </div>
+        </div>
+        <div className="container footer-bottom">
+          <span>© 2026 Mintiq · NEAR testnet demo</span>
+          <span>Built for “NFTs That Do Something”</span>
         </div>
       </footer>
     </>

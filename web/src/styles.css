@@ -253,3 +253,61 @@ input[type="checkbox"] { width: auto; accent-color: var(--green-2); }
 .toast .icon-btn:hover { color: var(--ink); background: var(--bg-2); }
 .stat-top { color: var(--muted); }
 .page h1, .dash-head h1 { color: var(--ink); }
+
+/* footer: compact, tidy columns */
+.footer { margin-top: 48px; padding: 36px 0 18px; font-size: 0.84rem; line-height: 1.5; }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1.3fr; gap: 28px; align-items: start; }
+.footer-brand p, .footer-col p { margin: 8px 0 0; color: #a9a499; max-width: 34ch; }
+.footer-col { display: flex; flex-direction: column; gap: 6px; }
+.footer-col h4 { margin: 0 0 4px; font: 600 0.72rem/1 var(--font); letter-spacing: .08em; text-transform: uppercase; color: var(--green); }
+.footer-col a { color: #e6e2d9; font-weight: 500; width: fit-content; }
+.footer-col a:hover { color: var(--green); }
+.footer-bottom { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 28px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.12); color: #8f8a80; font-size: 0.76rem; }
+@media (max-width: 860px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 22px; } .footer-brand { grid-column: 1 / -1; } }
+@media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } .footer-bottom { flex-direction: column; } }
+
+/* ── hover & focus polish (150–200ms; disabled by prefers-reduced-motion above) ── */
+.btn { transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease, border-color .18s ease, color .18s ease; }
+.btn:hover:not(:disabled) { transform: translateY(-2px) scale(1.02); }
+.btn.primary:hover:not(:disabled) { box-shadow: 4px 4px 0 var(--ink), 0 8px 22px rgba(148,196,71,.45); }
+.hero .btn.primary:hover:not(:disabled) { box-shadow: 4px 4px 0 var(--bg), 0 8px 26px rgba(148,196,71,.5); }
+.btn.secondary:hover:not(:disabled), .btn.ghost:hover:not(:disabled) { box-shadow: 0 6px 18px rgba(148,196,71,.3); border-color: var(--green-2); }
+.btn:active:not(:disabled) { transform: translateY(0) scale(.99); transition-duration: .08s; }
+.btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; box-shadow: 0 0 0 6px var(--green); }
+.hero .btn:focus-visible, .nav .btn:focus-visible { outline-color: var(--bg); }
+
+.card { position: relative; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .2s ease;
+  background: linear-gradient(120deg, transparent 30%, rgba(148,196,71,.14) 50%, transparent 70%); }
+.card:hover { transform: translateY(-3px); border-color: rgba(148,196,71,.7); box-shadow: 0 14px 34px rgba(11,11,11,.1), 0 0 0 1px rgba(148,196,71,.35); }
+.card:hover::after { opacity: 1; }
+form.card:hover, .card.form:hover { transform: none; }            /* forms stay still while typing */
+.card:focus-within { border-color: var(--green-2); }
+
+.nft-card .nft-art { overflow: hidden; }
+.nft-card .nft-art svg { transition: transform .2s ease; }
+.nft-card:hover .nft-art svg { transform: scale(1.05); }
+.hero-card:hover { transform: rotate(0deg) translateY(-4px); box-shadow: 10px 10px 0 var(--green); }
+
+.nav-links a { position: relative; }
+.nav-links a::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 4px; height: 2px; border-radius: 2px; background: var(--green);
+  transform: scaleX(0); transform-origin: left; transition: transform .18s ease; }
+.nav-links a:hover::after, .nav-links a:focus-visible::after { transform: scaleX(1); }
+.nav-links a[aria-current="page"]::after { display: none; }
+.nav-links a:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; box-shadow: none; }
+.footer-col a { background: linear-gradient(var(--green), var(--green)) left bottom / 0 2px no-repeat; transition: background-size .18s ease, color .18s ease; }
+.footer-col a:hover, .footer-col a:focus-visible { background-size: 100% 2px; text-decoration: none; }
+
+.step-icon, .feature-icon, .stat-icon, .icon-btn, .toast-body a svg { transition: color .18s ease, background-color .18s ease, transform .18s ease; }
+.step:hover .step-icon { color: var(--green-2); transform: translateY(-1px); }
+.feature:hover .feature-icon, .stat:hover .stat-icon { background: var(--ink); color: var(--green); }
+a:focus-visible, select:focus-visible, input[type="range"]:focus-visible, input[type="checkbox"]:focus-visible, summary:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; box-shadow: 0 0 0 5px var(--green); border-radius: 6px; }
+.footer a:focus-visible { outline-color: var(--green); box-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:hover:not(:disabled), .card:hover, .nft-card:hover .nft-art svg, .hero-card:hover, .step:hover .step-icon { transform: none !important; }
+}
+@media (hover: none) { .card:hover { transform: none; } }
+.card.preview { position: sticky; }
+@media (max-width: 900px) { .card.preview { position: relative; } }
+.toasts .toast { position: relative; }
