@@ -96,3 +96,59 @@ a { color: var(--purple-2); }
 .picker select { min-width: 320px; }
 label.check { display: flex; gap: 8px; align-items: center; flex-direction: row; }
 .flash a { color: inherit; text-decoration: underline; }
+
+/* ── UX polish ───────────────────────────────────────────── */
+.lede { color: var(--muted); font-size: 1.05rem; line-height: 1.55; max-width: 60ch; margin: 12px 0 0; }
+.top h1 { max-width: 20ch; font-size: 2.4rem; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.badge { font-size: 0.72rem; letter-spacing: 0.04em; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; color: var(--muted); background: rgba(255,255,255,0.02); }
+.badge.warn { color: #fbbf24; border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.06); }
+
+.how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+.how-step { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 20px; }
+.how-step h3 { margin: 10px 0 6px; font-size: 1.05rem; }
+.how-step p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+.num { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(139,108,255,0.18); color: var(--purple-2); font-weight: 700; font-size: 0.9rem; }
+
+.proofs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 14px; }
+.proof { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--text); background: var(--card-2); border: 1px solid var(--line); border-radius: 16px; padding: 16px; transition: transform .15s ease, border-color .15s ease; }
+a.proof:hover { transform: translateY(-2px); border-color: rgba(139,108,255,0.5); }
+.proof h3 { margin: 4px 0 0; font-size: 1rem; }
+.proof p { margin: 0; color: var(--muted); font-size: 0.85rem; line-height: 1.45; flex: 1; }
+.proof-tag { align-self: flex-start; font: 500 0.7rem "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 999px; }
+.proof.block .proof-tag { color: var(--err); background: rgba(253,164,175,0.1); }
+.proof.ok .proof-tag { color: var(--ok); background: rgba(110,231,183,0.1); }
+.proof-link { font-size: 0.8rem; color: var(--purple-2); }
+
+details.card summary { cursor: pointer; font-weight: 600; color: var(--text); list-style: none; }
+details.card summary::-webkit-details-marker { display: none; }
+details.card summary::before { content: "▸ "; color: var(--purple-2); }
+details.card[open] summary::before { content: "▾ "; }
+
+.loop { display: flex; align-items: stretch; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.loop .node { flex: 1; min-width: 140px; background: var(--card-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.loop .split-node { gap: 10px; }
+.loop .split-node > div { display: flex; flex-direction: column; gap: 2px; }
+.loop span { color: var(--muted); font-size: 0.78rem; }
+.loop strong { font-size: 1.05rem; letter-spacing: -0.02em; }
+.loop .arrow { align-self: center; color: var(--purple-2); font-size: 1.2rem; }
+
+.feed { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; }
+.feed li { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+.feed li:last-child { border-bottom: 0; }
+.feed .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--purple); align-self: center; }
+.feed .pass .dot, .feed .paid .dot { background: var(--ok); }
+.feed .fail .dot { background: var(--err); }
+.feed .mint .dot { background: #fbbf24; }
+.feed-time { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+
+.row.end { align-items: end; }
+.grow { flex: 1; min-width: 220px; margin: 0; }
+
+@media (max-width: 800px) {
+  .how, .proofs { grid-template-columns: 1fr; }
+  .top h1 { font-size: 1.9rem; }
+  .loop { flex-direction: column; }
+  .loop .arrow { transform: rotate(90deg); }
+}
+.stats.compact { grid-template-columns: repeat(3, 1fr); }

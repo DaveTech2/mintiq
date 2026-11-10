@@ -44,6 +44,50 @@ function nearUsd(near) {
   return Number.isFinite(n) ? formatUsd(n * deployed.usdPerNear) : "—";
 }
 
+// The four on-chain moments that prove the idea, matched against the scripted demo log.
+const PROOF_MOMENTS = [
+  { match: "ERR_OVERSPEND", title: "Overspend blocked", body: "The agent tried to post a $6 job. The max is $5, so the contract rejected it.", tone: "block" },
+  { match: "cannot transfer NEAR", title: "Agent can't move funds", body: "The agent's key tried to send NEAR out. NEAR itself refused before any code ran.", tone: "block" },
+  { match: "approved and paid", title: "Job paid", body: "A contributor delivered 5 memes, the agent scored them 95, the owner approved, and the NFT paid $5.", tone: "ok" },
+  { match: "Harvest demo yield", title: "Yield harvested", body: "Idle money earned demo yield, then it came back and was split between the treasury and the owner.", tone: "ok" },
+];
+
+function proofTx(match) {
+  return (deployed.transactions || []).find((t) => t.label.includes(match));
+}
+
+function shortAcct(a) {
+  return a && a.length > 24 ? `${a.slice(0, 10)}…${a.slice(-10)}` : a;
+}
+
+function timeAgo(ms) {
+  const s = Math.max(0, (Date.now() - Number(ms)) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function buildActivity(nft) {
+  const items = [];
+  for (const j of nft.jobs || []) {
+    items.push({ at: j.posted_at_ms, kind: "post", text: `Posted job "${j.title}" for ${usd(j.budget)}` });
+    for (const s of j.submissions || []) {
+      items.push({ at: s.submitted_at_ms, kind: "submit", text: `${shortAcct(s.contributor)} submitted work to "${j.title}"` });
+      if (s.evaluation) {
+        items.push({
+          at: Number(s.submitted_at_ms) + 1,
+          kind: s.evaluation.recommend_approve ? "pass" : "fail",
+          text: `Agent scored submission #${s.id}: ${s.evaluation.score}/100, ${s.evaluation.recommend_approve ? "recommends paying" : "rejected"}`,
+        });
+      }
+      if (s.paid) items.push({ at: Number(s.submitted_at_ms) + 2, kind: "paid", text: `Paid ${usd(j.budget)} to ${shortAcct(s.contributor)}` });
+    }
+  }
+  items.push({ at: nft.minted_at_ms, kind: "mint", text: `Minted with rules: max ${usd(nft.rules.max_per_task)} per task, ${usd(nft.rules.min_reserve)} reserve` });
+  return items.filter((i) => Number(i.at) > 0).sort((a, b) => Number(b.at) - Number(a.at));
+}
+
 function tokenFromUrl() {
   return new URLSearchParams(window.location.search).get("token");
 }
@@ -69,6 +113,7 @@ export default function App() {
   const [job, setJob] = useState({ title: "3 taglines for a coffee shop", description: "Write 3 short original taglines for a neighbourhood coffee shop.", budgetNear: "0.05" });
   const [submission, setSubmission] = useState("");
   const [investNear, setInvestNear] = useState("");
+  const [transferTo, setTransferTo] = useState("");
   const [flash, setFlash] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -182,13 +227,31 @@ export default function App() {
       })()
     : 0n;
 
+  const loop = nft
+    ? (() => {
+        const earned = BigInt(nft.track_record.total_earned);
+        const spent = BigInt(nft.track_record.total_spent);
+        const toOwner = (earned * BigInt(nft.rules.owner_share_bps)) / 10000n;
+        const reinvested = earned - toOwner;
+        return { earned, spent, toOwner, reinvested, net: reinvested - spent };
+      })()
+    : null;
+  const activity = nft ? buildActivity(nft) : [];
+
   return (
     <div className="page">
-      <div className="testnet-strip">NEAR TESTNET ONLY · test tokens, no real money · fixed demo rate $2.00 / NEAR</div>
       <header className="top">
         <div>
           <p className="eyebrow">Mintiq</p>
           <h1>NFTs that earn, invest, hire, and pay on their own.</h1>
+          <p className="lede">Each NFT owns a treasury and an AI agent runs it. The agent hires people, invests idle money and pays out, and the contract enforces the owner's rules so it can't break them.</p>
+          <div className="badges">
+            <span className="badge warn">NEAR testnet</span>
+            <span className="badge">Rules enforced on-chain</span>
+            <span className="badge">Demo yield</span>
+            <span className="badge">Market simulated</span>
+            <span className="badge">$2.00 / NEAR demo rate</span>
+          </div>
         </div>
         <nav>
           <button className={tab === "dashboard" ? "on" : ""} onClick={() => setTab("dashboard")}>Dashboard</button>
@@ -215,8 +278,45 @@ export default function App() {
         </p>
       )}
 
+      <section className="how">
+        <div className="how-step">
+          <span className="num">1</span>
+          <h3>Mint with rules</h3>
+          <p>Fund a treasury and set the limits: max spend per task, a reserve floor, where it can invest, and how earnings are split.</p>
+        </div>
+        <div className="how-step">
+          <span className="num">2</span>
+          <h3>The agent hires and invests</h3>
+          <p>It posts jobs, scores submissions, and puts idle money into approved places. Its key can't move funds anywhere else.</p>
+        </div>
+        <div className="how-step">
+          <span className="num">3</span>
+          <h3>It builds a track record</h3>
+          <p>Jobs, payouts and earnings are recorded on-chain. Transfer the NFT and the business, treasury and history go with it.</p>
+        </div>
+      </section>
+
       <section className="card">
-        <h2>Try it on NEAR testnet</h2>
+        <h2>Proven on NEAR testnet</h2>
+        <p className="muted">Real transactions from the demo NFT. Tap any card to check it in the explorer.</p>
+        <div className="proofs">
+          {PROOF_MOMENTS.map((p) => {
+            const t = proofTx(p.match);
+            const Tag = t?.hash ? "a" : "div";
+            return (
+              <Tag key={p.title} className={`proof ${p.tone}`} {...(t?.hash ? { href: `${TX}${t.hash}`, target: "_blank", rel: "noreferrer" } : {})}>
+                <span className="proof-tag">{p.tone === "block" ? "Rejected" : "Done"}</span>
+                <h3>{p.title}</h3>
+                <p>{p.body}</p>
+                {t?.hash && <span className="proof-link">View transaction →</span>}
+              </Tag>
+            );
+          })}
+        </div>
+      </section>
+
+      <details className="card try">
+        <summary>Try it yourself on testnet</summary>
         <ol className="steps">
           <li>Get a free testnet account (e.g. <a href="https://testnet.mynearwallet.com" target="_blank" rel="noreferrer">MyNearWallet testnet</a> or Meteor), which comes with test NEAR.</li>
           <li>Click <strong>Connect testnet wallet</strong>.</li>
@@ -228,7 +328,7 @@ export default function App() {
           <a href={`${ACCT}${POOL}`} target="_blank" rel="noreferrer">{POOL}</a> (labelled demo, not real staking) · agent{" "}
           <a href={`${ACCT}${AGENT}`} target="_blank" rel="noreferrer">{AGENT}</a> (function-call key, cannot move funds) · scorer: {deployed.evaluator}
         </p>
-      </section>
+      </details>
 
       {tab === "mint" && (
         <section className="card form">
@@ -356,7 +456,50 @@ export default function App() {
                   <Stat label="Contributors hired" value={nft.track_record.contributors_hired} />
                   <Stat label="Total spent" value={usd(nft.track_record.total_spent)} />
                   <Stat label="Total earned" value={usd(nft.track_record.total_earned)} />
+                  <Stat label="Paid to owner" value={usd(loop.toOwner.toString())} sub={`${nft.rules.owner_share_bps / 100}% of earnings`} />
+                  <Stat
+                    label="Net to treasury"
+                    value={`${loop.net < 0n ? "−" : "+"}${usd((loop.net < 0n ? -loop.net : loop.net).toString())}`}
+                    sub="reinvested earnings minus spending"
+                  />
                 </div>
+              </section>
+
+              <section className="card">
+                <h3>The loop</h3>
+                <p className="muted">Hiring spends the treasury and investing refills it. The owner's split decides how much comes back.</p>
+                <div className="loop">
+                  <div className="node"><span>Treasury</span><strong>{usd(nft.liquid)}</strong></div>
+                  <div className="arrow">→</div>
+                  <div className="node split-node">
+                    <div><span>Hiring</span><strong>−{usd(loop.spent.toString())}</strong></div>
+                    <div><span>Investing</span><strong>{usd(nft.invested)}</strong></div>
+                  </div>
+                  <div className="arrow">→</div>
+                  <div className="node"><span>Earnings</span><strong>+{usd(loop.earned.toString())}</strong></div>
+                  <div className="arrow">→</div>
+                  <div className="node split-node">
+                    <div><span>Back to treasury</span><strong>+{usd(loop.reinvested.toString())}</strong></div>
+                    <div><span>To owner</span><strong>+{usd(loop.toOwner.toString())}</strong></div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="card">
+                <h3>Activity</h3>
+                {activity.length === 0 ? (
+                  <p className="muted">Nothing yet.</p>
+                ) : (
+                  <ul className="feed">
+                    {activity.slice(0, 12).map((a, i) => (
+                      <li key={i} className={a.kind}>
+                        <span className="dot" />
+                        <span className="feed-text">{a.text}</span>
+                        <span className="feed-time">{timeAgo(a.at)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
 
               {isOwner && (
@@ -425,6 +568,32 @@ export default function App() {
                 </section>
               )}
 
+              {isOwner && (
+                <section className="card">
+                  <h3>Sell or transfer this business (owner)</h3>
+                  <p className="muted">The treasury, investments, jobs and track record stay with the token. The new owner gets the whole business, and the rules can't be changed.</p>
+                  <div className="row end">
+                    <label className="grow">
+                      New owner account
+                      <input placeholder="friend.testnet" value={transferTo} onChange={(e) => setTransferTo(e.target.value.trim())} />
+                    </label>
+                    <button
+                      disabled={busy || !transferTo || transferTo === account}
+                      onClick={() =>
+                        run(async () => {
+                          const { hash } = await send("Transfer", "nft_transfer", { receiver_id: transferTo, token_id: nft.token_id, memo: "Mintiq business transfer" });
+                          const to = transferTo;
+                          setTransferTo("");
+                          return { text: `Transferred "${nft.name}" to ${to}. Its treasury and track record went with it.`, hash };
+                        })
+                      }
+                    >
+                      Transfer NFT
+                    </button>
+                  </div>
+                </section>
+              )}
+
               <section className="card">
                 <h3>Jobs board</h3>
                 <p className="muted">Anyone with a testnet wallet can submit work. The agent scores it with the built-in rule-based scorer (no LLM) and records the score on-chain; only the owner can approve and pay.</p>
@@ -474,7 +643,8 @@ export default function App() {
                           onClick={() =>
                             run(async () => {
                               const res = await fetch("/api/score", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token_id: nft.token_id }) });
-                              const data = await res.json();
+                              if (res.status === 404) throw new Error("The scoring agent isn't running on this deployment yet. Submissions stay unscored until it's set up.");
+                              const data = await res.json().catch(() => ({}));
                               if (!res.ok) throw new Error(data.error || "Agent scoring failed");
                               const last = data.actions?.[data.actions.length - 1];
                               return { text: `Agent scored ${data.actions?.length || 0} submission(s) on-chain.`, hash: last?.hash };
@@ -511,8 +681,8 @@ export default function App() {
               </section>
 
               {nft.token_id === deployed.demoTokenId && (
-                <section className="card">
-                  <h3>Scripted demo transactions (token #{deployed.demoTokenId})</h3>
+                <details className="card">
+                  <summary>All {(deployed.transactions || []).length} demo transactions for token #{deployed.demoTokenId}, including setup</summary>
                   <ul className="tx-list">
                     {(deployed.transactions || []).map((t) => (
                       <li key={`${t.label}-${t.hash || "none"}`}>
@@ -526,12 +696,12 @@ export default function App() {
                       </li>
                     ))}
                   </ul>
-                </section>
+                </details>
               )}
 
               <section className="card">
-                <h3>Agent Market</h3>
-                <p className="muted">The market.near.ai hire loop is not on testnet (the market has no testnet), so it is not part of this live demo.</p>
+                <h3>NEAR AI Agent Market</h3>
+                <p className="muted">Next, Mintiq agents will post jobs to market.near.ai so other AI agents and people can bid on them. The market has no testnet and a real job spends real USD or USDC, so this demo simulates the documented flow (post → bid → award → submit → accept) instead of spending money.</p>
               </section>
             </>
           )}
