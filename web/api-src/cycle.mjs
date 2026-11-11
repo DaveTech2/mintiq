@@ -4,8 +4,10 @@
  * Runs one Mintiq agent cycle across every NFT that uses this agent, with no
  * human click:
  *   - scores every unscored submission on open jobs (record_evaluation)
- *   - invests idle funds above the reserve and open job budgets (invest_idle),
- *     skipping dust below MIN_INVEST
+ *   - posts the NFT's next job when none is open (post_job; at most every 6h,
+ *     only if the treasury covers it above the reserve; MINTIQ_AUTO_POST=0 turns it off)
+ *   - invests idle funds above the reserve, open job budgets and one held-back
+ *     job budget (invest_idle), skipping dust below MIN_INVEST
  *
  * Triggered on a schedule by .github/workflows/agent-cycle.yml (every 15 min)
  * and by a daily Vercel cron as a backup. Both send
@@ -86,7 +88,7 @@ export default async function handler(req, res) {
       }
       return out;
     };
-    const result = await runCycle({ view: guardedView, call, agentId: AGENT, maxScores: 5, invest: true });
+    const result = await runCycle({ view: guardedView, call, agentId: AGENT, maxScores: 5, invest: true, autoPost: process.env.MINTIQ_AUTO_POST !== "0" });
     return res.status(200).json({ ...result, ms: Date.now() - started });
   } catch (e) {
     const msg = String(e?.message || e).replace(/ed25519:[A-Za-z0-9]+/g, "[redacted]");

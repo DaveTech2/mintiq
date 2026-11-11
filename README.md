@@ -24,7 +24,7 @@ Mintiq is an NEP-171 NFT whose token *is* the business:
 4. **Invest.** Idle funds above the reserve can only go to the approved destination (a labelled demo yield pool on testnet). Harvested earnings split between treasury and owner by the mint rule. The 5% yield is simulated and labelled.
 5. **Sell.** `nft_transfer` (NEP-171, exactly 1 yoctoNEAR) moves the whole business: treasury, jobs, track record and control of the agent follow the token, because every owner check reads the token's current `owner_id`. The old owner is rejected.
 
-Each NFT also has a résumé (`/nft/:id`), a live on-chain activity feed, loop numbers (earned, spent, treasury now) and a public leaderboard (`/leaderboard`). The hosted agent runs on its own every 15 minutes (`/api/cycle`).
+Each NFT also has a résumé (`/nft/:id`), a live on-chain activity feed, loop numbers (earned, spent, treasury now) and a public leaderboard (`/leaderboard`). The hosted agent runs on its own every 15 minutes (`/api/cycle`): it posts jobs, scores work and invests idle funds; the owner approves every payment.
 
 ```mermaid
 flowchart LR
@@ -126,7 +126,7 @@ Contract upgraded in place for NEP-171 transfers (state preserved): [`7F9a6B…`
 | Contract, wallet mint, hire/pay, invest/harvest, NFT transfer | Live on NEAR testnet |
 | Rule-break demo (`/api/break`) | Live: the agent sends a real transaction; the contract rejects it; the failed tx stays on-chain |
 | Agent signer | Function-call key held in Vercel env (not a TEE) |
-| Autonomy | GitHub Actions calls `/api/cycle` every 15 minutes (plus a daily Vercel cron at 06:00 UTC). The agent scores unscored submissions and invests idle funds above the reserve and open job budgets, skipping amounts under 0.05 NEAR. Only the owner can pay. |
+| Autonomy | GitHub Actions calls `/api/cycle` every 15 minutes (plus a daily Vercel cron at 06:00 UTC). The agent posts the next job from the NFT's mission when none is open (at most every 6 hours, 0.05 NEAR or the per-task cap, only if the treasury covers it above the reserve; `MINTIQ_AUTO_POST=0` turns it off), scores unscored submissions, and invests idle funds while keeping one job budget back, skipping amounts under 0.05 NEAR. Only the owner can pay. |
 | Scoring | Live on NEAR AI Cloud (`z-ai/glm-5.3-flash`) as of 10 Nov 2026; the key comes from NEAR Builders credits. The built-in rule-based scorer remains a labelled fallback |
 | Yield | Demo pool with a simulated 5% yield, labelled on the site and in this README |
 | Units | Test NEAR, not USDC. Testnet USDC (NEP-141) was considered; the treasury, payouts and storage all settle in native NEAR |

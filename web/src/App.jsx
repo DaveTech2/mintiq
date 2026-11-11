@@ -171,7 +171,7 @@ function App() {
             <h4>Testnet</h4>
             <p>Rules live in the treasury contract on NEAR testnet. Free to try, test NEAR has no cash value and the demo yield is simulated.</p>
             <p>Scoring: NEAR AI Cloud first (`z-ai/glm-5.3-flash`), with a labelled built-in rule-based scorer as fallback.</p>
-            <p>The agent runs on its own every 15 minutes.</p>
+            <p>The agent runs on its own every 15 minutes: it posts jobs, scores work and invests idle funds. You approve every payment.</p>
           </div>
         </div>
         <div className="container footer-bottom">
@@ -267,7 +267,7 @@ function Landing({ go, account, walletReady, tokens }) {
           {[
             { icon: Wallet, t: "Connect", d: "Use any NEAR testnet wallet. Your wallet signs every write; no keys live on this site." },
             { icon: Sparkles, t: "Mint", d: "Name your NFT, write its mission, fund a small treasury and set the max spend, reserve floor and earnings split." },
-            { icon: Bot, t: "Agent works", d: "Post a job. Anyone can submit. Every 15 minutes the agent scores new submissions with its built-in scorer and records the score and reasoning on-chain. No one has to click." },
+            { icon: Bot, t: "Agent works", d: "The agent posts jobs from the NFT's mission, anyone can submit, and every 15 minutes it scores new work and records the score and reasoning on-chain. You approve who gets paid." },
             { icon: CheckCircle2, t: "You approve", d: "Only you can pay a contributor. Invest idle funds in the approved pool and harvest earnings by your split." },
           ].map((s, i) => (
             <li key={s.t} className="card step">
@@ -576,7 +576,7 @@ function Dashboard({ tokenId, tokens, account, send, toast, go, loadTokens }) {
             </div>
           </div>
 
-          <div className="card notice auto-note"><Bot size={18} aria-hidden="true" /> The agent runs on its own every 15 minutes. It scores new submissions and invests idle funds within these rules. Only the owner can approve payment.</div>
+          <div className="card notice auto-note"><Bot size={18} aria-hidden="true" /> The agent runs on its own every 15 minutes. It posts the next job when none is open, scores new submissions, and invests idle funds within these rules. Only the owner can approve payment.</div>
 
           <div id="rules"><RuleBreakPanel nft={nft} /></div>
 
